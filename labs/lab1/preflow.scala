@@ -32,7 +32,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = false			/* to enable printing.						*/
+	var	debug = true			/* to enable printing.						*/
 	
 	def min(a:Int, b:Int) : Int = { if (a < b) a else b }
 
@@ -107,6 +107,10 @@ class Preflow extends Actor
 
 	case Maxflow => {
 		ret = sender
+
+		node(s) ! Source(n) // tell s it is source with h = n
+		node(t) ! Sink // tell t it is sink
+		node(s) ! Start // tell s to start pushing
 
 		node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
 	}
