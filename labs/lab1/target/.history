@@ -1,0 +1,3 @@
+run
+run ../data/tiny/0.in
+run < ../data/tiny/0.in

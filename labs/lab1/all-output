@@ -2,9 +2,11 @@ copying runtime jar...
 [info] welcome to sbt 1.3.13 (Amazon.com Inc. Java 17.0.4.1)
 [info] loading project definition from /Users/alex/git/edan26-multicore/labs/lab1/project
 [info] loading settings for project lab1 from build.sbt ...
-[info] Compiling 1 Scala source to /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes ...
-[info] Done compiling.
 [info] running main 
-14:54:31.250 [Main-akka.actor.default-dispatcher-5] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+App started
+14:37:10.952 [Main-akka.actor.default-dispatcher-5] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+0 is sink
+Started
+2 is sink
 f = 0
-t = 0.847 s
+t = 1.917 s

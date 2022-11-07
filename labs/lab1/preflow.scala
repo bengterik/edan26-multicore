@@ -10,13 +10,16 @@ import scala.language.postfixOps
 import scala.io._
 
 case class Flow(f: Int)
+case class Height(h: Int)
 case class Debug(debug: Boolean)
 case class Control(control:ActorRef)
 case class Source(n: Int)
+case class Push(f: Int)
 
 case object Print
 case object Start
 case object Excess
+case object Height
 case object Maxflow
 case object Sink
 case object Hello
@@ -66,9 +69,43 @@ class Node(val index: Int) extends Actor {
 
 	case Control(control:ActorRef)	=> this.control = control
 
-	case Sink	=> { sink = true }
+	case Sink	=> { sink = true; if (debug) println(s"$id is sink"); }
 
-	case Source(n:Int)	=> { h = n; source = true }
+	case Source(n:Int)	=> { h = n; source = true; if (debug) println(s"$index is source") }
+
+	case Start => {
+		println("Started");
+
+		for (e <- edge) {
+			e.v ! Push(e.c)
+			e.f = e.c
+		}
+	}
+
+	case Push(f:Int) => { 
+		println(id + f" gets pushed $f from " + sender)
+		e += f
+
+		if (!(sink || source)) {
+			while(e > 0) {
+				for (ed <- edge) {
+					/* How can we ask next node for their height? */
+					implicit val t = Timeout(4 seconds);
+					val vHeight = ed.v ? Height
+
+					if(h > vHeight) {
+						val p = min(this.e, ed.c)
+						ed.v ! Push(p)
+						e - p
+					} else {
+						relabel
+					}
+				}
+			}
+		}
+	}
+
+	case Height => { sender ! Height(h) }
 
 	case _		=> {
 		println("" + index + " received an unknown message" + _) }
@@ -119,6 +156,8 @@ class Preflow extends Actor
 
 object main extends App {
 	implicit val t = Timeout(4 seconds);
+
+	println("App started")
 
 	val	begin = System.currentTimeMillis()
 	val system = ActorSystem("Main")
