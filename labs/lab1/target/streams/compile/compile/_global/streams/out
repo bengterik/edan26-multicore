@@ -1,12 +1,4 @@
-[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:95:11: overloaded method value > with alternatives:
-[error]   (x: Double)Boolean <and>
-[error]   (x: Float)Boolean <and>
-[error]   (x: Long)Boolean <and>
-[error]   (x: Int)Boolean <and>
-[error]   (x: Char)Boolean <and>
-[error]   (x: Short)Boolean <and>
-[error]   (x: Byte)Boolean
-[error]  cannot be applied to (scala.concurrent.Future[Any])
-[error] 					if(h > vHeight) {
-[error] 					     ^
+[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:97:61: value id is not a member of akka.actor.ActorRef
+[error] 		if (debug) println(id + f" gets pushed $f from " + sender.id)
+[error] 		                                                          ^
 [error] one error found

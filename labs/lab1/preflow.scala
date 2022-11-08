@@ -14,7 +14,9 @@ case class Height(h: Int)
 case class Debug(debug: Boolean)
 case class Control(control:ActorRef)
 case class Source(n: Int)
-case class Push(f: Int)
+case class Push(f: Int, hOther: Int)
+case class Decline(f: Int)
+case class Done(i: Int)
 
 case object Print
 case object Start
@@ -75,37 +77,59 @@ class Node(val index: Int) extends Actor {
 
 	case Start => {
 		println("Started");
-
+		
 		for (e <- edge) {
-			e.v ! Push(e.c)
+			e.v ! Push(e.c, h)
 			e.f = e.c
 		}
 	}
 
-	case Push(f:Int) => { 
-		println(id + f" gets pushed $f from " + sender)
+	case Decline(f:Int) => {
+		if (debug) println(id + f" gets declined $f from " + sender)
+
 		e += f
+		relabel
+	}
 
-		if (!(sink || source)) {
-			while(e > 0) {
+	case Push(f:Int, hOther:Int) => { 
+		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
+		
+		if (debug) println(id + f" gets pushed $f from " + sender)
+
+		if (sink) {
+			e +=f
+			control ! Done(e)
+		} else {
+			if (hOther > h) {
+				e += f
+			} else {
+				sender ! Decline(f)
+			}
+
+			if (!source) {
 				for (ed <- edge) {
-					/* How can we ask next node for their height? */
-					implicit val t = Timeout(4 seconds);
-					val vHeight = ed.v ? Height
-
-					if(h > vHeight) {
-						val p = min(this.e, ed.c)
-						ed.v ! Push(p)
-						e - p
-					} else {
-						relabel
-					}
+					val m = min(ed.c, e)
+					other(ed, self) ! Push(m, h)
+					e -= m
 				}
 			}
 		}
+
+		/* 
+		* if !(start || sink) 
+		* while e > 0 
+		* 	for edge in edges  
+		* 		if h(other) > h(self)
+		* 			push min(excess, capacity)
+		* 			e = e - edge.capacity
+		* 	
+		* 	if (e > 0) relabel
+		* 
+		* control ! Done
+		*/
+
 	}
 
-	case Height => { sender ! Height(h) }
 
 	case _		=> {
 		println("" + index + " received an unknown message" + _) }
@@ -148,9 +172,13 @@ class Preflow extends Actor
 		node(s) ! Source(n) // tell s it is source with h = n
 		node(t) ! Sink // tell t it is sink
 		node(s) ! Start // tell s to start pushing
+	}
 
+	case Done(i: Int) => {
+		// if allDone then
 		node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
 	}
+
 	}
 }
 
