@@ -4,19 +4,13 @@ copying runtime jar...
 [info] loading settings for project lab1 from build.sbt ...
 [info] running main 
 App started
-16:59:58.753 [Main-akka.actor.default-dispatcher-6] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
-0 is source
+17:16:47.212 [Main-akka.actor.default-dispatcher-5] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
 @2 is sink
+0 is source
 Started
-@2 gets pushed 10 from Actor[akka://Main/user/v0#-176999336]
-@1 gets pushed 10 from Actor[akka://Main/user/v0#-176999336]
-@0 gets pushed 0 from Actor[akka://Main/user/v1#5460524]
-@2 gets pushed 10 from Actor[akka://Main/user/v1#5460524]
-@1 gets declined 0 from Actor[akka://Main/user/v0#-176999336]
-@1 enters relabel
-@1 e = 0, h = 0
-@1 exits relabel
-@1 e = 0, h = 1
+@2 gets pushed 10 from Actor[akka://Main/user/v0#385059115]
+@1 gets pushed 10 from Actor[akka://Main/user/v0#385059115]
+@2 gets pushed 10 from Actor[akka://Main/user/v1#1038572536]
+17:16:47.422 [Main-akka.actor.default-dispatcher-8] INFO akka.actor.DeadLetterActorRef - Message [java.lang.Integer] from Actor[akka://Main/user/control#-354177186] to Actor[akka://Main/deadLetters] was not delivered. [1] dead letters encountered. If this is not an expected behavior then Actor[akka://Main/deadLetters] may have terminated unexpectedly. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
 f = 10
-16:59:58.961 [Main-akka.actor.default-dispatcher-7] INFO akka.actor.DeadLetterActorRef - Message [java.lang.Integer] from Actor[akka://Main/user/control#2092401523] to Actor[akka://Main/deadLetters] was not delivered. [1] dead letters encountered. If this is not an expected behavior then Actor[akka://Main/deadLetters] may have terminated unexpectedly. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
-t = 0.872 s
+t = 0.941 s

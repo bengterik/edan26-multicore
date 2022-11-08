@@ -15,8 +15,8 @@ case class Debug(debug: Boolean)
 case class Control(control:ActorRef)
 case class Source(n: Int)
 case class Push(f: Int, hOther: Int)
-case class Decline(f: Int)
-case class Done(i: Int)
+case class Decline(f: Int, h: Int)
+case class Done(i: Int, done: Boolean = true)
 
 case object Print
 case object Start
@@ -82,13 +82,17 @@ class Node(val index: Int) extends Actor {
 			e.v ! Push(e.c, h)
 			e.f = e.c
 		}
+		control ! Done(index)
 	}
 
-	case Decline(f:Int) => {
-		if (debug) println(id + f" gets declined $f from " + sender)
+	case Decline(f:Int, hOld: Int) => {
+		if (debug) println(sender + f" declines $f from " + id)
 
-		e += f
-		relabel
+		if (hOld == h) {
+			relabel
+			control ! Done(index, false)	
+			self ! Push(f, Int.MaxValue)	
+		}
 	}
 
 	case Push(f:Int, hOther:Int) => { 
@@ -96,37 +100,24 @@ class Node(val index: Int) extends Actor {
 		
 		if (debug) println(id + f" gets pushed $f from " + sender)
 
-		if (sink) {
-			e +=f
-			control ! Done(e)
+		if (hOther > h) {
+			e += f
 		} else {
-			if (hOther > h) {
-				e += f
-			} else {
-				sender ! Decline(f)
-			}
+			sender ! Decline(f, hOther)
+		}
 
-			if (!source) {
-				for (ed <- edge) {
-					val m = min(ed.c, e)
-					other(ed, self) ! Push(m, h)
-					e -= m
-				}
+		if (sink) {
+			control ! Done(index)
+		} else if (!source) {
+			for (ed <- edge if e > 0) { // 
+				val m = min(ed.c, e)
+				ed.f = m
+				other(ed, self) ! Push(m, h)
+				e -= m
 			}
 		}
 
-		/* 
-		* if !(start || sink) 
-		* while e > 0 
-		* 	for edge in edges  
-		* 		if h(other) > h(self)
-		* 			push min(excess, capacity)
-		* 			e = e - edge.capacity
-		* 	
-		* 	if (e > 0) relabel
-		* 
-		* control ! Done
-		*/
+		//control ! Done(index)	
 
 	}
 
@@ -147,6 +138,7 @@ class Preflow extends Actor
 	var	n	= 0;			/* number of vertices in the graph.				*/
 	var	edge:Array[Edge]	= null	/* edges in the graph.						*/
 	var	node:Array[ActorRef]	= null	/* vertices in the graph.					*/
+	var done:Array[Boolean] = null
 	var	ret:ActorRef 		= null	/* Actor to send result to.					*/
 
 	def receive = {
@@ -156,6 +148,9 @@ class Preflow extends Actor
 		n = node.size
 		s = 0
 		t = n-1
+
+		done = Array.fill(n) {false}
+		
 		for (u <- node)
 			u ! Control(self)
 	}
@@ -174,9 +169,12 @@ class Preflow extends Actor
 		node(s) ! Start // tell s to start pushing
 	}
 
-	case Done(i: Int) => {
-		// if allDone then
-		node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
+	case Done(i: Int, d: Boolean) => {
+		println(f"Node $i has done == $d")
+		done(i) = d
+		if (done.forall(_ == true)) {
+			node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
+		}
 	}
 
 	}
