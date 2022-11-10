@@ -16,10 +16,12 @@ case class Control(control:ActorRef)
 case class Source(n: Int)
 case class Push(f: Int, hOther: Int)
 case class Decline(f: Int, h: Int)
-case class Done(i: Int, done: Boolean = true)
+case class Approve(f: Int)
+
 
 case object Print
 case object Start
+case object Done
 case object Excess
 case object Height
 case object Maxflow
@@ -38,10 +40,11 @@ class Node(val index: Int) extends Actor {
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
 	var	debug = true			/* to enable printing.						*/
-	
+	var activeEdges: List[Edge] = Nil
+
 	def min(a:Int, b:Int) : Int = { if (a < b) a else b }
 
-	def id: String = "@" + index;
+	def id: String = "v" + index;
 
 	def other(a:Edge, u:ActorRef) : ActorRef = { if (u == a.u) a.v else a.u }
 
@@ -51,12 +54,42 @@ class Node(val index: Int) extends Actor {
 	def exit(func: String): Unit = { if (debug) { println(id + " exits " + func); status } }
 
 	def relabel : Unit = {
-
+		
 		enter("relabel")
-
 		h += 1
-
 		exit("relabel")
+	}
+
+	def discharge: Unit = {
+		var     current:Edge = null
+
+		println("discharge v" + index + " with e = " + e)
+
+		if (activeEdges != Nil) {
+			current = activeEdges.head
+			activeEdges = activeEdges.tail 
+			var m = 0
+
+			if (self == current.u) {
+				m = min(current.c - current.f, e)
+				current.f +=m
+			} else {
+				m = min(current.c + current.f, e)
+				current.f -=m
+			}
+			println("m = " + m)
+			
+			if (m!=0) {
+				e -= m
+
+				other(current, self) ! Push(m, h)
+			} else {
+				println("m = 0")
+			}
+		} else if (!(source || e==0)) {
+			relabel
+			activeEdges = edge
+		}
 	}
 
 	def receive = {
@@ -79,46 +112,45 @@ class Node(val index: Int) extends Actor {
 		println("Started");
 		
 		for (e <- edge) {
-			e.v ! Push(e.c, h)
-			e.f = e.c
+			this.e += e.c
 		}
-		control ! Done(index)
+
+		activeEdges = edge
+		discharge
 	}
 
 	case Decline(f:Int, hOld: Int) => {
-		if (debug) println(sender + f" declines $f from " + id)
+		if (debug) println(sender.path.name + f" declines $f from " + id + f" with hOld=$hOld and h=$h ")
+		
+		e += f
+		discharge
 
-		if (hOld == h) {
-			relabel
-			control ! Done(index, false)	
-			self ! Push(f, Int.MaxValue)	
-		}
+	}
+
+	case Approve(f:Int) => {
+		if (debug) println(sender.path.name + f" approves $f from " + id)
+
+		discharge	
 	}
 
 	case Push(f:Int, hOther:Int) => { 
 		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
 		
-		if (debug) println(id + f" gets pushed $f from " + sender)
+		if (debug) println(id + f" gets pushed $f from " + sender.path.name)
 
 		if (hOther > h) {
 			e += f
+			sender ! Approve(f)
+			if (sink || source) {
+				control ! Done
+			}
 		} else {
 			sender ! Decline(f, hOther)
 		}
 
-		if (sink) {
-			control ! Done(index)
-		} else if (!source) {
-			for (ed <- edge if e > 0) { // 
-				val m = min(ed.c, e)
-				ed.f = m
-				other(ed, self) ! Push(m, h)
-				e -= m
-			}
-		}
-
-		//control ! Done(index)	
-
+		
+		activeEdges = edge
+		discharge
 	}
 
 
@@ -169,10 +201,16 @@ class Preflow extends Actor
 		node(s) ! Start // tell s to start pushing
 	}
 
-	case Done(i: Int, d: Boolean) => {
-		println(f"Node $i has done == $d")
-		done(i) = d
-		if (done.forall(_ == true)) {
+	case Done => {
+		implicit val timeout = Timeout(4 seconds);
+
+		val flowS = node(s) ? Excess
+		val flowT = node(t) ? Excess
+
+		val es = Await.result(flowS, timeout.duration).asInstanceOf[Flow]
+		val et = Await.result(flowT, timeout.duration).asInstanceOf[Flow]
+
+		if (math.abs(es.f) == et.f) {
 			node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
 		}
 	}

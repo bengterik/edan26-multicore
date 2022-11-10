@@ -1,2 +1,4 @@
-[warn] there was one deprecation warning (since 2.13.0); re-run with -deprecation for details
-[warn] one warning found
+[error] /Users/elnaseyer/Documents/Multicore/edan26-multicore/labs/lab1/preflow.scala:72:1: '=' expected.
+[error] 			if (self == current.u) {
+[error] ^
+[error] one error found
