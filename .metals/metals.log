@@ -1,0 +1,348 @@
+2022.11.01 14:32:41 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/alex/git/edan26-multicore/.metals/lsp.trace.json or /Users/alex/Library/Caches/org.scalameta.metals/lsp.trace.json
+2022.11.01 14:32:42 INFO  logging to file /Users/alex/git/edan26-multicore/.metals/metals.log
+2022.11.01 14:32:42 INFO  Started: Metals version 0.11.9 in workspace '/Users/alex/git/edan26-multicore' for client Visual Studio Code 1.71.2.
+2022.11.01 14:32:46 INFO  time: initialize in 4.5s
+2022.11.01 14:32:51 WARN  Build server is not auto-connectable.
+2022.11.01 14:32:51 WARN  no build tool detected in workspace '/Users/alex/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2022.11.01 14:32:52 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.01 14:33:03 INFO  no build target found for /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.11.01 14:33:08 INFO  time: code lens generation in 14s
+2022.11.02 13:58:10 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.02 14:22:28 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 02, 2022 2:22:29 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 36
+Nov 02, 2022 2:22:51 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 78
+2022.11.02 14:22:54 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.02 14:23:37 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.02 14:25:54 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 02, 2022 2:35:53 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 397
+Nov 02, 2022 2:52:25 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 520
+2022.11.02 14:52:34 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.02 14:53:47 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 02, 2022 2:54:53 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 574
+2022.11.02 14:56:11 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.02 14:57:15 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 02, 2022 2:57:29 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 856
+2022.11.07 13:54:06 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/alex/git/edan26-multicore/.metals/lsp.trace.json or /Users/alex/Library/Caches/org.scalameta.metals/lsp.trace.json
+2022.11.07 13:54:07 INFO  logging to file /Users/alex/git/edan26-multicore/.metals/metals.log
+2022.11.07 13:54:07 INFO  Started: Metals version 0.11.9 in workspace '/Users/alex/git/edan26-multicore' for client Visual Studio Code 1.71.2.
+2022.11.07 13:54:13 INFO  time: initialize in 6.25s
+2022.11.07 13:54:17 WARN  Build server is not auto-connectable.
+2022.11.07 13:54:17 WARN  no build tool detected in workspace '/Users/alex/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2022.11.07 13:54:17 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 13:54:42 INFO  no build target found for /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.11.07 13:54:57 INFO  time: code lens generation in 36s
+Nov 07, 2022 2:07:49 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 41
+Nov 07, 2022 2:10:19 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 179
+Nov 07, 2022 2:12:30 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 213
+Nov 07, 2022 2:19:05 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 326
+2022.11.07 14:25:04 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 14:25:11 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 14:26:43 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 14:30:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 2:31:42 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 690
+2022.11.07 14:31:42 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 2:32:05 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 718
+Nov 07, 2022 2:32:07 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 728
+2022.11.07 14:32:11 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 14:33:17 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 14:40:03 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 2:48:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1049
+Nov 07, 2022 2:57:55 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+2022.11.07 15:00:03 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:00:13 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 3:00:23 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+Nov 07, 2022 3:00:40 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+2022.11.07 15:00:42 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:01:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 3:01:26 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1511
+2022.11.07 15:01:27 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:04:13 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:07:22 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:08:43 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:11:12 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:11:15 INFO  time: code lens generation in 2.1s
+2022.11.07 15:13:39 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:14:11 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:14:48 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:15:35 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 3:23:28 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2086
+Nov 07, 2022 3:25:08 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+Nov 07, 2022 3:27:14 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2295
+2022.11.07 15:30:39 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:30:46 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:31:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:36:04 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:38:25 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:40:28 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 3:44:19 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 3893
+2022.11.07 15:44:38 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:45:45 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:46:17 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:46:21 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:46:24 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 07, 2022 3:46:30 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4227
+Nov 07, 2022 3:46:30 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4231
+2022.11.07 15:46:35 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:47:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.07 15:48:39 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Exception in thread "pool-3-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Nov 08, 2022 1:09:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4546
+Nov 08, 2022 1:09:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4545
+Nov 08, 2022 1:09:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4547
+Nov 08, 2022 1:09:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4549
+Nov 08, 2022 1:09:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4551
+Nov 08, 2022 1:09:25 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4569
+Nov 08, 2022 1:32:47 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4947
+2022.11.08 13:32:49 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 13:47:01 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 1:58:17 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5697
+Nov 08, 2022 1:58:40 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5760
+Nov 08, 2022 1:58:43 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5770
+Nov 08, 2022 1:58:43 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5776
+Nov 08, 2022 2:07:46 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5895
+Nov 08, 2022 2:08:57 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 6032
+Nov 08, 2022 2:16:21 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 6150
+Nov 08, 2022 2:16:22 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 6154
+Nov 08, 2022 2:19:02 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 6334
+Nov 08, 2022 4:25:25 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 7020
+Nov 08, 2022 4:27:02 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 7156
+Nov 08, 2022 4:27:02 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 7158
+2022.11.08 16:31:29 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:32:45 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 4:35:32 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+2022.11.08 16:36:10 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:36:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:37:18 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:37:30 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:38:22 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 4:40:23 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: 0
+java.lang.IndexOutOfBoundsException: 0
+	at scala.collection.LinearSeqOps.apply(LinearSeq.scala:131)
+	at scala.collection.LinearSeqOps.apply$(LinearSeq.scala:128)
+	at scala.collection.immutable.List.apply(List.scala:79)
+	at dotty.tools.dotc.util.Signatures$.countParams(Signatures.scala:436)
+	at dotty.tools.dotc.util.Signatures$.applyCallInfo(Signatures.scala:156)
+	at dotty.tools.dotc.util.Signatures$.computeSignatureHelp(Signatures.scala:91)
+	at dotty.tools.dotc.util.Signatures$.signatureHelp(Signatures.scala:61)
+	at scala.meta.internal.pc.MetalsSignatures$.signatures(MetalsSignatures.scala:22)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:56)
+
+2022.11.08 16:42:33 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:43:36 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 4:45:25 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 8365
+2022.11.08 16:47:33 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:48:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Exception in thread "pool-3-thread-2" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+2022.11.08 16:51:50 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:53:27 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:53:29 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:55:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 16:59:13 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:09:58 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:13:34 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:14:56 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:15:40 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:15:59 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:19:36 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:19:53 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 9203
+2022.11.08 17:21:02 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:21:39 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 9377
+Nov 08, 2022 5:21:41 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 9389
+Nov 08, 2022 5:21:48 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 9423
+2022.11.08 17:22:27 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:23:53 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:24:16 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:25:57 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:26:00 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:26:33 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:27:58 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:29:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:31:10 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:31:36 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:32:29 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:32:52 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 10010
+2022.11.08 17:33:25 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:34:26 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:35:44 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:35:52 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:36:09 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:36:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:36:45 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:36:50 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:36:52 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:39:10 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:41:02 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 10571
+2022.11.08 17:42:37 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:43:08 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:44:06 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:44:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:44:59 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 10873
+2022.11.08 17:45:01 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:45:42 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:46:00 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 5:50:35 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 11070
+2022.11.08 17:52:55 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:52:59 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:54:00 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:56:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 17:59:16 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 6:00:29 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 11743
+Nov 08, 2022 6:00:29 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 11744
+2022.11.08 18:00:29 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:05:26 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:07:11 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:07:21 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 6:08:11 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 12330
+Nov 08, 2022 6:08:30 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 12398
+2022.11.08 18:08:35 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:08:41 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:09:12 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:10:38 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:11:09 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:12:26 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:12:49 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:12:56 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:13:19 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:14:43 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:16:23 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:17:02 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:18:31 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:19:12 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.08 18:19:54 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 08, 2022 6:21:29 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 12900
+2022.11.08 18:21:38 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.10 10:38:35 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/alex/git/edan26-multicore/.metals/lsp.trace.json or /Users/alex/Library/Caches/org.scalameta.metals/lsp.trace.json
+2022.11.10 10:38:42 INFO  logging to file /Users/alex/git/edan26-multicore/.metals/metals.log
+2022.11.10 10:38:42 INFO  Started: Metals version 0.11.9 in workspace '/Users/alex/git/edan26-multicore' for client Visual Studio Code 1.71.2.
+2022.11.10 10:38:57 INFO  time: initialize in 15s
+2022.11.10 10:39:08 WARN  Build server is not auto-connectable.
+2022.11.10 10:39:08 WARN  no build tool detected in workspace '/Users/alex/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2022.11.10 10:39:08 WARN  no build target for: /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.10 10:39:24 INFO  no build target found for /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.11.10 10:39:30 INFO  time: code lens generation in 18s
