@@ -1,4 +1,5 @@
-[error] /Users/elnaseyer/Documents/Multicore/edan26-multicore/labs/lab1/preflow.scala:72:1: '=' expected.
-[error] 			if (self == current.u) {
-[error] ^
+[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:144:6: value += is not a member of Edge
+[error]   Expression does not convert to assignment because receiver is not assignable.
+[error] 			e += f
+[error] 			  ^
 [error] one error found

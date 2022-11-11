@@ -14,8 +14,8 @@ case class Height(h: Int)
 case class Debug(debug: Boolean)
 case class Control(control:ActorRef)
 case class Source(n: Int)
-case class Push(f: Int, hOther: Int)
-case class Decline(f: Int, h: Int)
+case class Push(e: Edge, f: Int, hOther: Int)
+case class Decline(e: Edge, f: Int, h: Int)
 case class Approve(f: Int)
 
 
@@ -63,13 +63,13 @@ class Node(val index: Int) extends Actor {
 	def discharge: Unit = {
 		var     current:Edge = null
 
-		println("discharge v" + index + " with e = " + e)
+		if (activeEdges != Nil && e > 0) {
 
-		if (activeEdges != Nil) {
 			current = activeEdges.head
 			activeEdges = activeEdges.tail 
 			var m = 0
 
+			// NÅGOT SOM INTE STÄMMER HÄR NU..
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
 				current.f +=m
@@ -77,18 +77,19 @@ class Node(val index: Int) extends Actor {
 				m = min(current.c + current.f, e)
 				current.f -=m
 			}
-			println("m = " + m)
+			println("discharge v" + index + " with e = " + e + ", m = " + m)
 			
 			if (m!=0) {
 				e -= m
 
-				other(current, self) ! Push(m, h)
+				other(current, self) ! Push(current, m, h)
 			} else {
 				println("m = 0")
 			}
 		} else if (!(source || e==0)) {
 			relabel
 			activeEdges = edge
+			discharge
 		}
 	}
 
@@ -112,17 +113,17 @@ class Node(val index: Int) extends Actor {
 		println("Started");
 		
 		for (e <- edge) {
-			this.e += e.c
+			this.e -= e.c
+			other(e, self) ! Push(e, e.c, Int.MaxValue)
 		}
-
-		activeEdges = edge
-		discharge
 	}
 
-	case Decline(f:Int, hOld: Int) => {
+	case Decline(e: Edge, f:Int, hOld: Int) => {
 		if (debug) println(sender.path.name + f" declines $f from " + id + f" with hOld=$hOld and h=$h ")
 		
-		e += f
+		this.e += f
+		e.f -= f
+
 		discharge
 
 	}
@@ -133,22 +134,21 @@ class Node(val index: Int) extends Actor {
 		discharge	
 	}
 
-	case Push(f:Int, hOther:Int) => { 
+	case Push(e: Edge, f:Int, hOther:Int) => { 
 		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
 		
 		if (debug) println(id + f" gets pushed $f from " + sender.path.name)
 
 		if (hOther > h) {
-			e += f
+			this.e += f
 			sender ! Approve(f)
 			if (sink || source) {
 				control ! Done
 			}
 		} else {
-			sender ! Decline(f, hOther)
+			sender ! Decline(e, f, hOther)
 		}
 
-		
 		activeEdges = edge
 		discharge
 	}
