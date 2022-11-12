@@ -18,6 +18,8 @@
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Hello$.class
 [debug] 	Push$.class
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Push$.class
+[debug] 	Relabel$.class
+[debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Relabel$.class
 [debug] 	Start$.class
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Start$.class
 [debug] 	Edge.class
@@ -50,6 +52,8 @@
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Source$.class
 [debug] 	Excess$.class
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Excess$.class
+[debug] 	Relabel.class
+[debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Relabel.class
 [debug] 	Maxflow$.class
 [debug] 	  /Users/alex/git/edan26-multicore/labs/lab1/target/scala-2.13/classes/Maxflow$.class
 [debug] 	Done.class

@@ -24,12 +24,18 @@ case object Start
 case object Done
 case object Excess
 case object Height
+case object Relabel
 case object Maxflow
 case object Sink
 case object Hello
 
 class Edge(var u: ActorRef, var v: ActorRef, var c: Int) {
 	var	f = 0
+
+	def add(newF:Int) = {
+		println(f"Flow changed with $newF in edge ${u.path.name} -> ${v.path.name}")
+		f += newF 
+	}
 }
 
 class Node(val index: Int) extends Actor {
@@ -63,19 +69,23 @@ class Node(val index: Int) extends Actor {
 	def discharge: Unit = {
 		var     current:Edge = null
 
-		if (activeEdges != Nil && e > 0) {
+		if (activeEdges != Nil && e > 0 && !source) {
 
 			current = activeEdges.head
 			activeEdges = activeEdges.tail 
 			var m = 0
-
+			
+			println("Edge capacity: " + current.c)
+			println("Edge flow: " + current.f)
+			println("Node excess: " + e)
+			
 			// NÅGOT SOM INTE STÄMMER HÄR NU..
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
-				current.f +=m
+				current.add(m)
 			} else {
 				m = min(current.c + current.f, e)
-				current.f -=m
+				current.add(-m)
 			}
 			println("discharge v" + index + " with e = " + e + ", m = " + m)
 			
@@ -87,9 +97,7 @@ class Node(val index: Int) extends Actor {
 				println("m = 0")
 			}
 		} else if (!(source || e==0)) {
-			relabel
-			activeEdges = edge
-			discharge
+			self ! Relabel
 		}
 	}
 
@@ -113,6 +121,7 @@ class Node(val index: Int) extends Actor {
 		println("Started");
 		
 		for (e <- edge) {
+			e.add(e.c)
 			this.e -= e.c
 			other(e, self) ! Push(e, e.c, Int.MaxValue)
 		}
@@ -122,7 +131,7 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(sender.path.name + f" declines $f from " + id + f" with hOld=$hOld and h=$h ")
 		
 		this.e += f
-		e.f -= f
+		e.add(-f)
 
 		discharge
 
@@ -131,7 +140,13 @@ class Node(val index: Int) extends Actor {
 	case Approve(f:Int) => {
 		if (debug) println(sender.path.name + f" approves $f from " + id)
 
-		discharge	
+		if (!source) discharge	
+	}
+
+	case Relabel => {
+		relabel
+		activeEdges = edge
+		discharge
 	}
 
 	case Push(e: Edge, f:Int, hOther:Int) => { 
@@ -146,7 +161,7 @@ class Node(val index: Int) extends Actor {
 				control ! Done
 			}
 		} else {
-			sender ! Decline(e, f, hOther)
+			sender ! Decline(e, if (source) -f else f, hOther)
 		}
 
 		activeEdges = edge

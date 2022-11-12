@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PRINT		0	/* enable/disable prints.	*/
+#define PRINT		1	/* enable/disable prints.	*/
 #define TIME		0	/* for timing on power.		*/
 
 /* the funny do-while next clearly performs one iteration of the loop.
