@@ -33,8 +33,9 @@ class Edge(var u: ActorRef, var v: ActorRef, var c: Int) {
 	var	f = 0
 
 	def add(newF:Int) = {
-		println(f"Flow changed with $newF in edge ${u.path.name} -> ${v.path.name}")
+		//println(f"Flow changed with $newF in edge ${u.path.name} -> ${v.path.name}")
 		f += newF 
+		//println(f"Flow is now $f")
 	}
 }
 
@@ -75,26 +76,31 @@ class Node(val index: Int) extends Actor {
 			activeEdges = activeEdges.tail 
 			var m = 0
 			
-			println("Edge capacity: " + current.c)
-			println("Edge flow: " + current.f)
-			println("Node excess: " + e)
+			if (debug) {
+				println("Current edge: " + current.u.path.name + "->" + current.v.path.name + f", from v$index")
+				println("capacity: " + current.c)
+				println("flow: " + current.f)
+				println("Node excess: " + e)
+			}
 			
 			// NÅGOT SOM INTE STÄMMER HÄR NU..
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
 				current.add(m)
 			} else {
-				m = min(current.c + current.f, e)
-				current.add(-m)
+				m = -min(current.c + current.f, e)
+				current.add(m)
 			}
-			println("discharge v" + index + " with e = " + e + ", m = " + m)
+
+			if (debug) println("discharge v" + index + " with e = " + e + ", m = " + m)
 			
 			if (m!=0) {
-				e -= m
+				e -= math.abs(m)
 
 				other(current, self) ! Push(current, m, h)
 			} else {
-				println("m = 0")
+				if (debug) println("m = 0")
+				self ! Decline(current, 0, -1)
 			}
 		} else if (!(source || e==0)) {
 			self ! Relabel
@@ -118,7 +124,7 @@ class Node(val index: Int) extends Actor {
 	case Source(n:Int)	=> { h = n; source = true; if (debug) println(s"$index is source") }
 
 	case Start => {
-		println("Started");
+		if (debug) println("Started");
 		
 		for (e <- edge) {
 			e.add(e.c)
@@ -130,17 +136,18 @@ class Node(val index: Int) extends Actor {
 	case Decline(e: Edge, f:Int, hOld: Int) => {
 		if (debug) println(sender.path.name + f" declines $f from " + id + f" with hOld=$hOld and h=$h ")
 		
-		this.e += f
+		this.e += math.abs(f)
 		e.add(-f)
 
-		discharge
-
+		if (this.e != 0 && !(source || sink)) discharge
 	}
 
 	case Approve(f:Int) => {
 		if (debug) println(sender.path.name + f" approves $f from " + id)
 
-		if (!source) discharge	
+		if (!(source || sink)) {
+			discharge 
+		} 
 	}
 
 	case Relabel => {
@@ -155,22 +162,24 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(id + f" gets pushed $f from " + sender.path.name)
 
 		if (hOther > h) {
-			this.e += f
+			this.e += (if (source) -f else f)
 			sender ! Approve(f)
 			if (sink || source) {
 				control ! Done
 			}
 		} else {
-			sender ! Decline(e, if (source) -f else f, hOther)
+			sender ! Decline(e, f, hOther)
 		}
 
-		activeEdges = edge
-		discharge
+		if (!(source || sink)) {
+			activeEdges = edge
+			discharge
+		}
 	}
 
 
 	case _		=> {
-		println("" + index + " received an unknown message" + _) }
+		if (debug) println("" + index + " received an unknown message" + _) }
 
 		assert(false)
 	}
@@ -224,6 +233,8 @@ class Preflow extends Actor
 
 		val es = Await.result(flowS, timeout.duration).asInstanceOf[Flow]
 		val et = Await.result(flowT, timeout.duration).asInstanceOf[Flow]
+
+		println(f"DONE: source excess = ${es.f}, sink excess = ${et.f}")
 
 		if (math.abs(es.f) == et.f) {
 			node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
