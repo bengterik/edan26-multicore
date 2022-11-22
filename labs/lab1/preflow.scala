@@ -77,10 +77,8 @@ class Node(val index: Int) extends Actor {
 			var m = 0
 			
 			if (debug) {
-				println("Current edge: " + current.u.path.name + "->" + current.v.path.name + f", from v$index")
-				println("capacity: " + current.c)
-				println("flow: " + current.f)
-				println("Node excess: " + e)
+				println(f"V$index DISCHARGE:\t edge: " + current.u.path.name + "->" + current.v.path.name + f", from v$index")
+				println(f"V$index DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
 			}
 			
 			// NÅGOT SOM INTE STÄMMER HÄR NU..
@@ -92,14 +90,14 @@ class Node(val index: Int) extends Actor {
 				current.add(m)
 			}
 
-			if (debug) println("discharge v" + index + " with e = " + e + ", m = " + m)
+			if (debug) println(f"V$index DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
 			
 			if (m!=0) {
 				e -= math.abs(m)
 
 				other(current, self) ! Push(current, m, h)
 			} else {
-				if (debug) println("m = 0")
+				if (debug) println(f"V$index DISCHARGE:\t m = 0")
 				self ! Decline(current, 0, -1)
 			}
 		} else if (!(source || e==0)) {
@@ -133,19 +131,19 @@ class Node(val index: Int) extends Actor {
 		}
 	}
 
-	case Decline(e: Edge, f:Int, hOld: Int) => {
-		if (debug) println(sender.path.name + f" declines $f from " + id + f" with hOld=$hOld and h=$h ")
+	case Decline(e: Edge, f:Int, hOther: Int) => {
+		if (debug) println(f"V$index DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
 		this.e += math.abs(f)
 		e.add(-f)
 
-		if (this.e != 0 && !(source || sink)) discharge
+		if (!(source || sink || this.e == 0 )) discharge
 	}
 
 	case Approve(f:Int) => {
-		if (debug) println(sender.path.name + f" approves $f from " + id)
+		if (debug) println(f"V$index APPROVE:\t " + sender.path.name + f" approves $f from $id")
 
-		if (!(source || sink)) {
+		if (!(source || sink || this.e == 0 )) {
 			discharge 
 		} 
 	}
@@ -159,22 +157,22 @@ class Node(val index: Int) extends Actor {
 	case Push(e: Edge, f:Int, hOther:Int) => { 
 		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
 		
-		if (debug) println(id + f" gets pushed $f from " + sender.path.name)
+		if (debug) println(f"V$index PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
 
 		if (hOther > h) {
 			this.e += (if (source) -f else f)
 			sender ! Approve(f)
 			if (sink || source) {
 				control ! Done
+			} else {
+				activeEdges = edge
+				discharge
 			}
 		} else {
 			sender ! Decline(e, f, hOther)
 		}
 
-		if (!(source || sink)) {
-			activeEdges = edge
-			discharge
-		}
+		
 	}
 
 
@@ -234,7 +232,7 @@ class Preflow extends Actor
 		val es = Await.result(flowS, timeout.duration).asInstanceOf[Flow]
 		val et = Await.result(flowT, timeout.duration).asInstanceOf[Flow]
 
-		println(f"DONE: source excess = ${es.f}, sink excess = ${et.f}")
+		println(f"DONE:\t\t source excess = ${es.f}, sink excess = ${et.f}")
 
 		if (math.abs(es.f) == et.f) {
 			node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
