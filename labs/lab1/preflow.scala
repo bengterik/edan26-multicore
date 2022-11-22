@@ -16,7 +16,7 @@ case class Control(control:ActorRef)
 case class Source(n: Int)
 case class Push(e: Edge, f: Int, hOther: Int)
 case class Decline(e: Edge, f: Int, h: Int)
-case class Approve(f: Int)
+case class Accept(f: Int)
 
 
 case object Print
@@ -34,7 +34,7 @@ class Edge(var u: ActorRef, var v: ActorRef, var c: Int) {
 
 	def add(newF:Int) = {
 		f += newF 
-		//println(f"EDGE ${u.path.name} -> ${v.path.name}" + f": \t Flow changed with $newF, is now $f")
+		println(f"EDGE ${u.path.name} -> ${v.path.name}" + f": \t Flow changed with $newF, is now $f")
 	}
 }
 
@@ -139,8 +139,8 @@ class Node(val index: Int) extends Actor {
 		if (!(source || sink || this.e == 0 )) discharge
 	}
 
-	case Approve(f:Int) => {
-		if (debug) println(f"V$index APPROVE:\t " + sender.path.name + f" approves $f from $id")
+	case Accept(f:Int) => {
+		if (debug) println(f"V$index ACCEPT:\t " + sender.path.name + f" accepts $f from $id")
 
 		if (!(source || sink || this.e == 0 )) {
 			discharge 
@@ -153,14 +153,14 @@ class Node(val index: Int) extends Actor {
 		discharge
 	}
 
-	case Push(e: Edge, f:Int, hOther:Int) => { 
+	case Push(e: Edge, f:Int, hSender:Int) => { 
 		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
 		
 		if (debug) println(f"V$index PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
 
-		if (hOther > h) {
+		if (hSender > h) {
 			this.e += math.abs(f)
-			sender ! Approve(f)
+			sender ! Accept(f)
 			if (sink || source) {
 				control ! Done
 			} else {
