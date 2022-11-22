@@ -45,7 +45,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = false			/* to enable printing.						*/
+	var	debug = true			/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
 
 	def min(a:Int, b:Int) : Int = { if (a < b) a else b }
