@@ -33,9 +33,8 @@ class Edge(var u: ActorRef, var v: ActorRef, var c: Int) {
 	var	f = 0
 
 	def add(newF:Int) = {
-		//println(f"Flow changed with $newF in edge ${u.path.name} -> ${v.path.name}")
 		f += newF 
-		//println(f"Flow is now $f")
+		//println(f"EDGE ${u.path.name} -> ${v.path.name}" + f": \t Flow changed with $newF, is now $f")
 	}
 }
 
@@ -46,7 +45,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = true			/* to enable printing.						*/
+	var	debug = false			/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
 
 	def min(a:Int, b:Int) : Int = { if (a < b) a else b }
@@ -86,14 +85,14 @@ class Node(val index: Int) extends Actor {
 				m = min(current.c - current.f, e)
 				current.add(m)
 			} else {
-				m = -min(current.c + current.f, e)
-				current.add(m)
+				m = min(current.c + current.f, e)
+				current.add(-m)
 			}
 
 			if (debug) println(f"V$index DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
 			
 			if (m!=0) {
-				e -= math.abs(m)
+				e -= m
 
 				other(current, self) ! Push(current, m, h)
 			} else {
@@ -135,7 +134,7 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(f"V$index DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
 		this.e += math.abs(f)
-		e.add(-f)
+		e.add(if(self == e.u) -f else f)
 
 		if (!(source || sink || this.e == 0 )) discharge
 	}
@@ -160,7 +159,7 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(f"V$index PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
 
 		if (hOther > h) {
-			this.e += (if (source) -f else f)
+			this.e += math.abs(f)
 			sender ! Approve(f)
 			if (sink || source) {
 				control ! Done
@@ -169,7 +168,7 @@ class Node(val index: Int) extends Actor {
 				discharge
 			}
 		} else {
-			sender ! Decline(e, f, hOther)
+			sender ! Decline(e, f, h)
 		}
 
 		
