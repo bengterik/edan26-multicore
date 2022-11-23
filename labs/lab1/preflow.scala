@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.io._
 
+
 case class Flow(f: Int)
 case class Height(h: Int)
 case class Debug(debug: Boolean)
@@ -34,7 +35,7 @@ class Edge(var u: ActorRef, var v: ActorRef, var c: Int) {
 
 	def add(newF:Int) = {
 		f += newF 
-		println(f"EDGE ${u.path.name} -> ${v.path.name}" + f": \t Flow changed with $newF, is now $f")
+		//println(f"EDGE ${u.path.name} -> ${v.path.name}" + f": \t Flow changed with $newF, is now $f")
 	}
 }
 
@@ -45,8 +46,9 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = true			/* to enable printing.						*/
+	var	debug = false			/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
+	var awaitingReply = 0;
 
 	def min(a:Int, b:Int) : Int = { if (a < b) a else b }
 
@@ -80,7 +82,6 @@ class Node(val index: Int) extends Actor {
 				println(f"V$index DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
 			}
 			
-			// NÅGOT SOM INTE STÄMMER HÄR NU..
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
 				current.add(m)
@@ -93,10 +94,11 @@ class Node(val index: Int) extends Actor {
 			
 			if (m!=0) {
 				e -= m
-
+				awaitingReply += 1
 				other(current, self) ! Push(current, m, h)
 			} else {
 				if (debug) println(f"V$index DISCHARGE:\t m = 0")
+				awaitingReply += 1
 				self ! Decline(current, 0, -1)
 			}
 		} else if (!(source || e==0)) {
@@ -133,6 +135,8 @@ class Node(val index: Int) extends Actor {
 	case Decline(e: Edge, f:Int, hOther: Int) => {
 		if (debug) println(f"V$index DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
+		awaitingReply -= 1
+
 		this.e += math.abs(f)
 		e.add(if(self == e.u) -f else f)
 
@@ -142,15 +146,20 @@ class Node(val index: Int) extends Actor {
 	case Accept(f:Int) => {
 		if (debug) println(f"V$index ACCEPT:\t " + sender.path.name + f" accepts $f from $id")
 
+		awaitingReply -= 1
+
 		if (!(source || sink || this.e == 0 )) {
 			discharge 
 		} 
 	}
 
 	case Relabel => {
-		relabel
-		activeEdges = edge
-		discharge
+		if (awaitingReply == 0) {
+			relabel
+			activeEdges = edge
+			discharge
+		}
+		
 	}
 
 	case Push(e: Edge, f:Int, hSender:Int) => { 
