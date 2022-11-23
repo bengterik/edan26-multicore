@@ -46,7 +46,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = false			/* to enable printing.						*/
+	var	debug = true			/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
 	var awaitingReply = 0;
 
@@ -78,8 +78,8 @@ class Node(val index: Int) extends Actor {
 			var m = 0
 			
 			if (debug) {
-				println(f"V$index DISCHARGE:\t edge: " + current.u.path.name + "->" + current.v.path.name + f", from v$index")
-				println(f"V$index DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
+				println(f"$id DISCHARGE:\t edge: " + current.u.path.name + "->" + current.v.path.name + f", from v$index")
+				println(f"$id DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
 			}
 			
 			if (self == current.u) {
@@ -90,14 +90,14 @@ class Node(val index: Int) extends Actor {
 				current.add(-m)
 			}
 
-			if (debug) println(f"V$index DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
+			if (debug) println(f"$id DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
 			
 			if (m!=0) {
 				e -= m
 				awaitingReply += 1
 				other(current, self) ! Push(current, m, h)
 			} else {
-				if (debug) println(f"V$index DISCHARGE:\t m = 0")
+				if (debug) println(f"$id DISCHARGE:\t m = 0")
 				awaitingReply += 1
 				self ! Decline(current, 0, -1)
 			}
@@ -133,7 +133,7 @@ class Node(val index: Int) extends Actor {
 	}
 
 	case Decline(e: Edge, f:Int, hOther: Int) => {
-		if (debug) println(f"V$index DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
+		if (debug) println(f"$id DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
 		awaitingReply -= 1
 
@@ -144,7 +144,7 @@ class Node(val index: Int) extends Actor {
 	}
 
 	case Accept(f:Int) => {
-		if (debug) println(f"V$index ACCEPT:\t " + sender.path.name + f" accepts $f from $id")
+		if (debug) println(f"$id ACCEPT:\t " + sender.path.name + f" accepts $f from $id")
 
 		awaitingReply -= 1
 
@@ -165,7 +165,7 @@ class Node(val index: Int) extends Actor {
 	case Push(e: Edge, f:Int, hSender:Int) => { 
 		// Push to all adjacent and if their h >= own h they will send Decline-message with the flow
 		
-		if (debug) println(f"V$index PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
+		if (debug) println(f"$id PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
 
 		if (hSender > h) {
 			this.e += math.abs(f)
