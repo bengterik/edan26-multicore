@@ -1,7 +1,4 @@
-[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:133:10: value += is not a member of Int
-[error]   Expression does not convert to assignment because:
-[error]     not found: value abs
-[error]     expansion: this.e = this.e.+(<abs: error>(f))
-[error] 		this.e += abs(f)
-[error] 		       ^
+[error] /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala:12:1: expected class or object definition
+[error] val globalDebug = false
+[error] ^
 [error] one error found
