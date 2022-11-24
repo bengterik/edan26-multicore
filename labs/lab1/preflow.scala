@@ -46,7 +46,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = true			/* to enable printing.						*/
+	var	debug = false		/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
 	var awaitingReply = 0;
 

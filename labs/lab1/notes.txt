@@ -1,0 +1,36 @@
+Frågor:
+ - If-sats i discharge, fortsätter att pusha när man fått ett svar.
+ - Får kanter ha negativt flöde? m = min(e.c + e.f, e)?
+ - Måste man vänta in svar från alla noder innan relable?
+ - Skicka meddelanden till sig själv - bra idé?
+ - Inte kommit på varför/hur man utnyttjar att meddelandena kommer i ordningen de blev skickade i..
+ - Är det ok att fråga med ? från kontrollern?
+
+
+När sink excess > source excess fråga noderna om de har mindre än 0 i e
+
+Meddelanden:
+
+Node:
+    Push(e: Edge, f: Int, hOther: Int)
+    "Om e > 0 skickar den sitt flöde över en kant med tillgänglig kapacitet"
+        - om hOther > h
+            - lägg till excess
+            - skicka Accept
+            - om !(source || sink) discharge annars control ! Done
+        - annars
+            - Decline
+
+    
+    Decline(e: Edge, f: Int, h: Int)
+    "Svar på push, höjden inte tillräcklig för att bli pushad till"
+        - Ändrar flow från tidigare discharge
+        - om !(source || sink || e == 0) discharge
+
+
+    Accept(f: Int)
+    "Svar på push, höjden är tillräcklig och flödet mottaget"
+        - om !(source || sink || e == 0) fortsätt discharge
+
+Controller: 
+
