@@ -1,7 +1,4 @@
-[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:242:16: not found: value es
-[error] 		if (math.abs(es.f) == et.f) {
-[error] 		             ^
-[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:242:25: not found: value et
-[error] 		if (math.abs(es.f) == et.f) {
-[error] 		                      ^
-[error] two errors found
+[error] /Users/alex/git/edan26-multicore/labs/lab1/preflow.scala:150:154: not found: value current
+[error] 		assert(math.abs(e.f) <= e.c, f"$id flow exceeds capacity on edge ${e.u.path.name} -> ${e.v.path.name}, e = ${this.e}, f = ${e.f}, prevf = $prevF c = ${current.c}")
+[error] 		                                                                                                                                                       ^
+[error] one error found

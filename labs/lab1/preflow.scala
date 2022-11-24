@@ -83,6 +83,8 @@ class Node(val index: Int) extends Actor {
 				println(f"$id DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
 			}
 			
+			val prevF = current.f
+
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
 				current.add(m)
@@ -90,18 +92,21 @@ class Node(val index: Int) extends Actor {
 				m = min(current.c + current.f, e)
 				current.add(-m)
 			}
+			assert(math.abs(current.f) <= current.c, f"DISCHARGE: $id flow exceeds capacity on edge ${current.u.path.name} -> ${current.v.path.name}, m = $m, e = $e, f = ${current.f}, prevf = $prevF c = ${current.c}")
+
 
 			if (debug) println(f"$id DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
-			
+
+			awaitingReply += 1
+
 			if (m!=0) {
 				e -= m
-				awaitingReply += 1
 				other(current, self) ! Push(current, m, h)
 			} else {
 				if (debug) println(f"$id DISCHARGE:\t m = 0")
-				awaitingReply += 1
 				self ! Decline(current, 0, -1)
 			}
+
 		} else if (!(source || e==0)) {
 			self ! Relabel
 		}
@@ -139,9 +144,11 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(f"$id DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
 		awaitingReply -= 1
-
+		val prevF = e.f
 		this.e += f
-		e.add(if(self == e.u) -f else f)
+		e.add(if(self == e.u) -f else if (self == e.v) f else Int.MaxValue)
+
+		assert(math.abs(e.f) <= e.c, f"DECLINE: $id flow exceeds capacity on edge ${e.u.path.name} -> ${e.v.path.name}, e = ${this.e}, e.f = ${e.f}, f = $f, prevf = $prevF c = ${e.c}")
 
 		if (!(source || sink || this.e == 0 )) discharge
 	}
@@ -172,6 +179,7 @@ class Node(val index: Int) extends Actor {
 
 		if (hSender > h) {
 			this.e += f
+			assert(this.e >= 0, f"Excess flow is negative in $id")
 			sender ! Accept(f)
 			if (sink || source) {
 				control ! Done(this.e)
