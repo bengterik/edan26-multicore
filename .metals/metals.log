@@ -559,3 +559,139 @@ java.lang.IndexOutOfBoundsException: 0
 2022.11.22 21:15:10 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala[0m
 2022.11.22 21:15:36 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala[0m
 2022.11.22 22:15:58 INFO  shutting down Metals[0m
+2022.11.23 09:18:53 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/alexander/git/edan26-multicore/.metals/lsp.trace.json or /home/alexander/.cache/metals/lsp.trace.json
+2022.11.23 09:18:54 INFO  logging to file /home/alexander/git/edan26-multicore/.metals/metals.log
+2022.11.23 09:18:54 INFO  Started: Metals version 0.11.9 in workspace '/home/alexander/git/edan26-multicore' for client Visual Studio Code 1.73.1.
+2022.11.23 09:18:55 INFO  time: initialize in 1.23s
+2022.11.23 09:18:57 WARN  Build server is not auto-connectable.
+2022.11.23 09:18:57 WARN  no build tool detected in workspace '/home/alexander/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2022.11.23 09:18:57 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:19:01 INFO  no build target found for /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.11.23 09:19:03 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:19:04 INFO  time: code lens generation in 2.18s
+2022.11.23 09:19:04 INFO  time: code lens generation in 4.72s
+2022.11.23 09:19:04 INFO  time: code lens generation in 6.2s
+Nov 23, 2022 9:20:43 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 12
+2022.11.23 09:22:02 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:22:38 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:23:06 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Exception in thread "pool-3-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+2022.11.23 09:23:36 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:25:54 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 23, 2022 9:26:02 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 206
+2022.11.23 09:26:05 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 23, 2022 9:27:23 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 368
+2022.11.23 09:27:37 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 23, 2022 9:28:29 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 457
+2022.11.23 09:28:41 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:29:10 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:29:17 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:29:47 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:30:49 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Nov 23, 2022 9:31:40 AM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: NoDenotation.owner
+java.lang.AssertionError: NoDenotation.owner
+	at dotty.tools.dotc.core.SymDenotations$NoDenotation$.owner(SymDenotations.scala:2499)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.isForComprehensionOwner$1(PcDocumentHighlightProvider.scala:163)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.collectNames$1(PcDocumentHighlightProvider.scala:178)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.$anonfun$4(PcDocumentHighlightProvider.scala:275)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1576)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1574)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1568)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1630)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1627)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1636)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1541)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.highlights(PcDocumentHighlightProvider.scala:276)
+
+Nov 23, 2022 9:31:41 AM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: NoDenotation.owner
+java.lang.AssertionError: NoDenotation.owner
+	at dotty.tools.dotc.core.SymDenotations$NoDenotation$.owner(SymDenotations.scala:2499)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.isForComprehensionOwner$1(PcDocumentHighlightProvider.scala:163)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.collectNames$1(PcDocumentHighlightProvider.scala:178)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.$anonfun$4(PcDocumentHighlightProvider.scala:275)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1576)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1574)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1568)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1630)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1627)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1636)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1541)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.highlights(PcDocumentHighlightProvider.scala:276)
+
+2022.11.23 09:31:48 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:31:55 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:32:07 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+Exception in thread "pool-3-thread-2" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+2022.11.23 09:32:11 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:32:15 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:32:15 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:32:21 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:32:57 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:33:05 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:35:28 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.23 09:35:38 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.28 11:25:29 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/alexander/git/edan26-multicore/.metals/lsp.trace.json or /home/alexander/.cache/metals/lsp.trace.json
+2022.11.28 11:25:29 INFO  logging to file /home/alexander/git/edan26-multicore/.metals/metals.log
+2022.11.28 11:25:29 INFO  Started: Metals version 0.11.9 in workspace '/home/alexander/git/edan26-multicore' for client Visual Studio Code 1.73.1.
+2022.11.28 11:25:30 INFO  time: initialize in 1.2s
+2022.11.28 11:25:32 WARN  Build server is not auto-connectable.
+2022.11.28 11:25:32 WARN  no build tool detected in workspace '/home/alexander/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2022.11.28 11:25:32 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
+2022.11.28 11:25:36 INFO  no build target found for /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.11.28 11:25:39 INFO  time: code lens generation in 5.91s
