@@ -19,10 +19,11 @@ case class Push(e: Edge, f: Int, hOther: Int)
 case class Decline(e: Edge, f: Int, h: Int)
 case class Accept(f: Int)
 
+case class Done(f: Int)
+
 
 case object Print
 case object Start
-case object Done
 case object Excess
 case object Height
 case object Relabel
@@ -46,7 +47,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil		/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = true			/* to enable printing.						*/
+	var	debug = false		/* to enable printing.						*/
 	var activeEdges: List[Edge] = Nil
 	var awaitingReply = 0;
 
@@ -82,6 +83,8 @@ class Node(val index: Int) extends Actor {
 				println(f"$id DISCHARGE:\t capacity: " + current.c + f" flow: ${current.f}" + f", excess: $e")
 			}
 			
+			val prevF = current.f
+
 			if (self == current.u) {
 				m = min(current.c - current.f, e)
 				current.add(m)
@@ -89,18 +92,21 @@ class Node(val index: Int) extends Actor {
 				m = min(current.c + current.f, e)
 				current.add(-m)
 			}
+			assert(math.abs(current.f) <= current.c, f"DISCHARGE: $id flow exceeds capacity on edge ${current.u.path.name} -> ${current.v.path.name}, m = $m, e = $e, f = ${current.f}, prevf = $prevF c = ${current.c}")
+
 
 			if (debug) println(f"$id DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
-			
+
+			awaitingReply += 1
+
 			if (m!=0) {
 				e -= m
-				awaitingReply += 1
 				other(current, self) ! Push(current, m, h)
 			} else {
 				if (debug) println(f"$id DISCHARGE:\t m = 0")
-				awaitingReply += 1
 				self ! Decline(current, 0, -1)
 			}
+
 		} else if (!(source || e==0)) {
 			self ! Relabel
 		}
@@ -130,15 +136,19 @@ class Node(val index: Int) extends Actor {
 			this.e -= e.c
 			other(e, self) ! Push(e, e.c, Int.MaxValue)
 		}
+
+		control ! Done(e)
 	}
 
 	case Decline(e: Edge, f:Int, hOther: Int) => {
 		if (debug) println(f"$id DECLINE:\t " + sender.path.name + f" declines $f from " + id + f" with hOther=$hOther and h=$h ")
 		
 		awaitingReply -= 1
+		val prevF = e.f
+		this.e += f
+		e.add(if(self == e.u) -f else if (self == e.v) f else Int.MaxValue)
 
-		this.e += math.abs(f)
-		e.add(if(self == e.u) -f else f)
+		assert(math.abs(e.f) <= e.c, f"DECLINE: $id flow exceeds capacity on edge ${e.u.path.name} -> ${e.v.path.name}, e = ${this.e}, e.f = ${e.f}, f = $f, prevf = $prevF c = ${e.c}")
 
 		if (!(source || sink || this.e == 0 )) discharge
 	}
@@ -168,10 +178,11 @@ class Node(val index: Int) extends Actor {
 		if (debug) println(f"$id PUSH:\t " + id + f" gets pushed $f from " + sender.path.name)
 
 		if (hSender > h) {
-			this.e += math.abs(f)
+			this.e += f
+			assert(this.e >= 0, f"Excess flow is negative in $id")
 			sender ! Accept(f)
 			if (sink || source) {
-				control ! Done
+				control ! Done(this.e)
 			} else {
 				activeEdges = edge
 				discharge
@@ -200,8 +211,9 @@ class Preflow extends Actor
 	var	n	= 0;			/* number of vertices in the graph.				*/
 	var	edge:Array[Edge]	= null	/* edges in the graph.						*/
 	var	node:Array[ActorRef]	= null	/* vertices in the graph.					*/
-	var done:Array[Boolean] = null
 	var	ret:ActorRef 		= null	/* Actor to send result to.					*/
+	var eSource = 0 				/* excess of source.						*/
+	var eSink = 0					/* excess of sink.							*/
 
 	def receive = {
 
@@ -211,8 +223,6 @@ class Preflow extends Actor
 		s = 0
 		t = n-1
 
-		done = Array.fill(n) {false}
-		
 		for (u <- node)
 			u ! Control(self)
 	}
@@ -231,19 +241,16 @@ class Preflow extends Actor
 		node(s) ! Start // tell s to start pushing
 	}
 
-	case Done => {
-		implicit val timeout = Timeout(4 seconds);
+	case Done(f: Int) => {
+		if (sender == node(s)) {
+			eSource = f 
+		} else if (sender == node(t)) {
+			eSink = f
+		}
+		println(f"DONE:\t\t source excess = ${eSource}, sink excess = ${eSink}")
 
-		val flowS = node(s) ? Excess
-		val flowT = node(t) ? Excess
-
-		val es = Await.result(flowS, timeout.duration).asInstanceOf[Flow]
-		val et = Await.result(flowT, timeout.duration).asInstanceOf[Flow]
-
-		println(f"DONE:\t\t source excess = ${es.f}, sink excess = ${et.f}")
-
-		if (math.abs(es.f) == et.f) {
-			node(t) ! Excess	/* ask sink for its excess preflow (which certainly still is zero). */
+		if (math.abs(eSource) == eSink) {
+			node(t) ! Excess // finished
 		}
 	}
 

@@ -1,1 +1,1 @@
-["sbt.Task[scala.collection.immutable.Map[java.lang.String, scala.collection.Seq[scala.Tuple2[java.nio.file.Path, sbt.nio.FileStamp]]]]",{"2.13.1":{"hashes":[["/home/alexander/git/edan26-multicore/labs/lab1/preflow.scala","29afc2f4d973fea2faeed2cc88dffef4fc458e74"]],"lastModifiedTimes":[]}}]
+["sbt.Task[scala.collection.immutable.Map[java.lang.String, scala.collection.Seq[scala.Tuple2[java.nio.file.Path, sbt.nio.FileStamp]]]]",{"2.13.1":{"hashes":[["/Users/alex/git/edan26-multicore/labs/lab1/preflow.scala","472769e023f5b90f58c4774d4c1e6608ce727c21"]],"lastModifiedTimes":[]}}]
