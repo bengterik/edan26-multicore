@@ -77,6 +77,8 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
+	pthread_mutex_t lock;
+	pthread_cond_t cond;
 };
 
 struct edge_t {
@@ -303,11 +305,24 @@ static void connect(node_t* u, node_t* v, int c, edge_t* e)
 // 	node_t*		next;	/* with excess preflow.		*/
 // };
 
-void *print_number(void *threadarg) {
+void *node_work(void *threadarg) {
 	struct node_t *node;
 	node = (struct node_t *) threadarg;
 	
 	printf("%d\n", node->h);
+	
+	// while(node->e == 0) {
+	// 	wait(cond);
+	// }
+
+	// other = other(edge, me);
+
+	// lock(lock)
+	// lock(other->lock)
+	// push()
+	// unlock(other->lock)
+	// unlock(lock)
+
 
 	pthread_exit(NULL);
 }
@@ -348,7 +363,7 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	}
 
 	for (int i = 0; i < n; i += 1) {
-		if (pthread_create(&thread[i], NULL, print_number, (void *) &g->v[i]) != 0)
+		if (pthread_create(&thread[i], NULL, node_work, (void *) &g->v[i]) != 0)
 			error("pthread_create failed");
 		
 		if (pthread_join(thread[i], NULL) != 0)
