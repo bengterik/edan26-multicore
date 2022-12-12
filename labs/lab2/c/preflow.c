@@ -96,6 +96,10 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
+	pthread_mutex_t e_mut;
+	pthread_cond_t e_cond;
+	pthread_mutexattr_t e_attr;
+
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -353,6 +357,11 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	g->t = &g->v[n-1];
 	g->excess = NULL;
 
+ 	pthread_mutex_init(&g->e_mut, NULL);
+	pthread_mutexattr_init(&g->e_attr);
+	//pthread_mutexattr_settype(&g->e_attr, PTHREAD_MUTEX_ERRORCHECK);
+	pthread_mutex_init(&g->e_mut, &g->e_attr);	
+
 	for (i = 0; i < m; i += 1) {
 		a = next_int();
 		b = next_int();
@@ -473,6 +482,31 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->v;
 	else
 		return e->u;
+}
+
+int parallell_preflow(graph_t* g) {
+	node_t*		s;
+	node_t*		u;
+	node_t*		v;
+	edge_t*		e;
+	list_t*		p;
+	int		b;
+	
+
+	s = g->s; // S is source
+	s->h = g->n; // H of source is n
+
+	// Push to all reachable nodes from source
+	p = s->edge;
+	while (p != NULL) {
+		e = p->edge;
+		p = p->next;
+
+		s->e += e->c;
+		push(g, s, other(s, e), e); 
+	}
+
+	return g->t->e;
 }
 	
 int preflow(graph_t* g)
