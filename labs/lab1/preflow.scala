@@ -202,7 +202,7 @@ class Node(val index: Int) extends Actor {
 			if (sink || source) {
 				control ! Done(this.e)
 			} 
-			/*else {
+			else {
 				activeEdges = edge
 				if (awaitingReply == 0) discharge
 			}
