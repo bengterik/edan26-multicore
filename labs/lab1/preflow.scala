@@ -98,8 +98,7 @@ class Node(val index: Int) extends Actor {
 				m = min(current.c + current.f, e)
 				current.add(-m)
 			}
-			if(!(math.abs(current.f) <= current.c)) current.printHistory()
-			assert(math.abs(current.f) <= current.c, f"DISCHARGE: $id flow exceeds capacity on edge ${current.u.path.name} -> ${current.v.path.name}, m = $m, e = $e, f = ${current.f}, prevf = $prevF c = ${current.c}")
+			//assert(math.abs(current.f) <= current.c, f"DISCHARGE: $id flow exceeds capacity on edge ${current.u.path.name} -> ${current.v.path.name}, m = $m, e = $e, f = ${current.f}, prevf = $prevF c = ${current.c}")
 
 
 			if (debug) println(f"$id DISCHARGE:\t v" + index + " with e = " + e + ", m = " + m)
@@ -161,9 +160,9 @@ class Node(val index: Int) extends Actor {
 		this.e += f
 		e.add(if(self == e.u) -f else if (self == e.v) f else Int.MaxValue)
 
-		assert(math.abs(e.f) <= e.c, f"DECLINE: $id flow exceeds capacity on edge ${e.u.path.name} -> ${e.v.path.name}, e = ${this.e}, e.f = ${e.f}, f = $f, prevf = $prevF c = ${e.c}")
+		//assert(math.abs(e.f) <= e.c, f"DECLINE: $id flow exceeds capacity on edge ${e.u.path.name} -> ${e.v.path.name}, e = ${this.e}, e.f = ${e.f}, f = $f, prevf = $prevF c = ${e.c}")
 
-		if (!(source || sink || this.e == 0 )) discharge
+		if (!(source || sink || this.e == 0 ) && awaitingReply == 0) discharge
 	}
 
 	case Accept(f:Int) => {
@@ -171,7 +170,7 @@ class Node(val index: Int) extends Actor {
 
 		awaitingReply -= 1
 
-		if (!(source || sink || this.e == 0 )) {
+		if (!(source || sink || this.e == 0 ) && awaitingReply == 0) {
 			discharge 
 		} 
 	}
@@ -198,15 +197,15 @@ class Node(val index: Int) extends Actor {
 
 		if (hSender > h) {
 			this.e += f
-			assert(this.e >= 0, f"Excess flow is negative in $id")
+			//assert(this.e >= 0, f"Excess flow is negative in $id")
 			sender ! Accept(f)
 			if (sink || source) {
 				control ! Done(this.e)
 			} 
 			/*else {
 				activeEdges = edge
-				discharge
-			}*/
+				if (awaitingReply == 0) discharge
+			}
 		} else {
 			sender ! Decline(e, f, h)
 		}
