@@ -78,7 +78,7 @@ struct node_t {
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 	pthread_mutex_t lock;
-	pthread_cond_t cond;
+	pthread_cond_t cond; 
 };
 
 struct edge_t {
@@ -99,7 +99,6 @@ struct graph_t {
 	pthread_mutex_t e_mut;
 	pthread_cond_t e_cond;
 	pthread_mutexattr_t e_attr;
-
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -539,7 +538,7 @@ int preflow(graph_t* g)
 		s->e += e->c;
 		push(g, s, other(s, e), e);
 	}
-	
+	///start threads here and do work below?
 	/* then loop until only s and/or t have excess preflow. */
 
 	while ((u = leave_excess(g)) != NULL) {
@@ -589,7 +588,7 @@ int preflow(graph_t* g)
 
 static void free_graph(graph_t* g)
 {
-	int		i;
+	int			i;
 	list_t*		p;
 	list_t*		q;
 
@@ -600,7 +599,9 @@ static void free_graph(graph_t* g)
 			free(p);
 			p = q;
 		}
+		pthread_mutex_destroy(&g->v[i].lock);
 	}
+	pthread_mutex_destroy(&g->e_mut);
 	free(g->v);
 	free(g->e);
 	free(g);
@@ -631,6 +632,7 @@ int main(int argc, char* argv[])
 	fclose(in);
 
 	f = preflow(g);
+	//or do first push then start threads here?
 
 	printf("f = %d\n", f);
 
