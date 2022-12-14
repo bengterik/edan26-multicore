@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -77,8 +77,7 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t lock;
-	pthread_cond_t cond; 
+	pthread_mutex_t mut;
 };
 
 struct edge_t {
@@ -96,9 +95,7 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
-	pthread_mutex_t e_mut;
-	pthread_cond_t e_cond;
-	pthread_mutexattr_t e_attr;
+	pthread_mutex_t g_mut;
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -308,28 +305,6 @@ static void connect(node_t* u, node_t* v, int c, edge_t* e)
 // 	node_t*		next;	/* with excess preflow.		*/
 // };
 
-void *node_work(void *threadarg) {
-	struct node_t *node;
-	node = (struct node_t *) threadarg;
-	
-	printf("%d\n", node->h);
-	
-	// while(node->e == 0) {
-	// 	wait(cond);
-	// }
-
-	// other = other(edge, me);
-
-	// lock(lock)
-	// lock(other->lock)
-	// push()
-	// unlock(other->lock)
-	// unlock(lock)
-
-
-	pthread_exit(NULL);
-}
-
 static graph_t* new_graph(FILE* in, int n, int m)
 {
 	graph_t*	g;
@@ -339,10 +314,8 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	int		a;
 	int		b;
 	int		c;
-
 	pthread_t thread[n];
 	pthread_mutex_t mutex[n];
-	pthread_mutexattr_t attr[n];
 	
 	g = xmalloc(sizeof(graph_t));
 
@@ -354,12 +327,7 @@ static graph_t* new_graph(FILE* in, int n, int m)
 
 	g->s = &g->v[0];
 	g->t = &g->v[n-1];
-	g->excess = NULL;
-
- 	pthread_mutex_init(&g->e_mut, NULL);
-	pthread_mutexattr_init(&g->e_attr);
-	//pthread_mutexattr_settype(&g->e_attr, PTHREAD_MUTEX_ERRORCHECK);
-	pthread_mutex_init(&g->e_mut, &g->e_attr);	
+	g->excess = NULL;	
 
 	for (i = 0; i < m; i += 1) {
 		a = next_int();
@@ -368,21 +336,6 @@ static graph_t* new_graph(FILE* in, int n, int m)
 		u = &g->v[a];
 		v = &g->v[b];
 		connect(u, v, c, g->e+i);
-	}
-
-	for (int i = 0; i < n; i += 1) {
-		if (pthread_create(&thread[i], NULL, node_work, (void *) &g->v[i]) != 0)
-			error("pthread_create failed");
-		
-		if (pthread_join(thread[i], NULL) != 0)
-			error("pthread_join failed");
-
-		// pthread_mutexattr_init(&attr[i]);
-		// pthread_mutexattr_settype(&attr[i], PTHREAD_MUTEX_RECURSIVE);
-		// pthread_mutex_init(&mutex[i], &attr[i]);
-
-		// if (pthread_mutex_init(&mutex[n], NULL))
-		// 	error("pthread_mutex_init failed");
 	}
 
 	return g;
@@ -399,12 +352,12 @@ static void enter_excess(graph_t* g, node_t* v)
 	 *
 	 */
 	
-	pthread_mutex_unlock(&g->e_mut);
+	pthread_mutex_unlock(&g->g_mut);
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
-	pthread_mutex_unlock(&g->e_mut);
+	pthread_mutex_unlock(&g->g_mut);
 
 }
 
@@ -417,12 +370,12 @@ static node_t* leave_excess(graph_t* g)
 	 *
 	 */
 
-	pthread_mutex_lock(&g->e_mut);
+	pthread_mutex_lock(&g->g_mut);
 	v = g->excess;
 
 	if (v != NULL)
 		g->excess = v->next;
-	pthread_mutex_unlock(&g->e_mut);
+	pthread_mutex_unlock(&g->g_mut);
 	return v;
 }
 
@@ -487,6 +440,60 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
+static void *node_work(void *threadarg) {
+	node_t*		u; // selected node
+	list_t*		p; // adj list for node u
+
+	node_t*		v; // currently pushing to
+	edge_t*		e; // edge from u to v
+	int			b; // current flow dir
+
+	// get pointer to graph info
+	graph_t* g = (graph_t*) threadarg;
+
+	// retrive node with excess preflow an loop until none left
+	while ((u = leave_excess(g)) != NULL) {
+		pr("The thread id = %d \n", pthread_self());
+		pr("selected u = %d with ", id(g, u));
+		pr("h = %d and e = %d\n", u->h, u->e);
+
+		//find adj list
+		p = u->edge;
+
+		while (p != NULL) {
+			e = p->edge; 
+			p = p->next;
+
+			if (u == e->u) { // to see what direction the flow till go
+				v = e->v;
+				b = 1; //flow
+			} else {
+				v = e->u;
+				b = -1; //flow backwards
+			}
+
+			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
+				break;
+			else
+				v = NULL;
+		}
+
+		if (v != NULL) {
+			// pthread_mutex_lock(&u->mut);
+      		// pthread_mutex_lock(&v->mut);
+
+			push(g, u, v, e);
+
+			// pthread_mutex_unlock(&v->mut);
+			// pthread_mutex_unlock(&u->mut);
+		} else
+			relabel(g, u);
+	}
+
+    pr("The thread id = %d terminating \n", pthread_self());
+	pthread_exit(NULL);
+}
+
 int parallell_preflow(graph_t* g) {
 	node_t*		s;
 	node_t*		u;
@@ -495,7 +502,6 @@ int parallell_preflow(graph_t* g) {
 	list_t*		p;
 	int		b;
 	
-
 	s = g->s; // S is source
 	s->h = g->n; // H of source is n
 
@@ -509,82 +515,97 @@ int parallell_preflow(graph_t* g) {
 		push(g, s, other(s, e), e); 
 	}
 
+	//now start threads on node_work()
+	pthread_t thread[4]; //testing w 2 threads
+	//work_args arg = {g}; //have graph as input to thread
+
+	for (int i = 0; i < 4; i += 1) { 
+		if (pthread_create(&thread[i], NULL, node_work, (void*) g) != 0)
+			error("pthread_create failed");
+	} //because otherwise the threads finished before multithreading but might only be bc small program
+	for (int i = 0; i < 4; i += 1) { 
+		if (pthread_join(thread[i], NULL) != 0)
+			error("pthread_join failed");
+	}
+
 	return g->t->e;
 }
 	
-int preflow(graph_t* g)
-{
-	node_t*		s;
-	node_t*		u;
-	node_t*		v;
-	edge_t*		e;
-	list_t*		p;
-	int		b;
 
-	s = g->s;
-	s->h = g->n;
 
-	p = s->edge;
+// int preflow(graph_t* g)
+// {
+// 	node_t*		s;
+// 	node_t*		u;
+// 	node_t*		v;
+// 	edge_t*		e;
+// 	list_t*		p;
+// 	int		b;
 
-	/* start by pushing as much as possible (limited by
-	 * the edge capacity) from the source to its neighbors.
-	 *
-	 */
+// 	s = g->s;
+// 	s->h = g->n;
 
-	while (p != NULL) {
-		e = p->edge;
-		p = p->next;
+// 	p = s->edge;
 
-		s->e += e->c;
-		push(g, s, other(s, e), e);
-	}
-	///start threads here and do work below?
-	/* then loop until only s and/or t have excess preflow. */
+// 	/* start by pushing as much as possible (limited by
+// 	 * the edge capacity) from the source to its neighbors.
+// 	 *
+// 	 */
 
-	while ((u = leave_excess(g)) != NULL) {
+// 	while (p != NULL) {
+// 		e = p->edge;
+// 		p = p->next;
 
-		/* u is any node with excess preflow. */
+// 		s->e += e->c;
+// 		push(g, s, other(s, e), e);
+// 	}
+// 	///start threads here and do work below?
+// 	/* then loop until only s and/or t have excess preflow. */
 
-		pr("selected u = %d with ", id(g, u));
-		pr("h = %d and e = %d\n", u->h, u->e);
+// 	while ((u = leave_excess(g)) != NULL) {
 
-		/* if we can push we must push and only if we could
-		 * not push anything, we are allowed to relabel.
-		 *
-		 * we can push to multiple nodes if we wish but
-		 * here we just push once for simplicity.
-		 *
-		 */
+// 		/* u is any node with excess preflow. */
 
-		v = NULL;
-		p = u->edge;
+// 		pr("selected u = %d with ", id(g, u));
+// 		pr("h = %d and e = %d\n", u->h, u->e);
 
-		while (p != NULL) {
-			e = p->edge;
-			p = p->next;
+// 		/* if we can push we must push and only if we could
+// 		 * not push anything, we are allowed to relabel.
+// 		 *
+// 		 * we can push to multiple nodes if we wish but
+// 		 * here we just push once for simplicity.
+// 		 *
+// 		 */
 
-			if (u == e->u) {
-				v = e->v;
-				b = 1;
-			} else {
-				v = e->u;
-				b = -1;
-			}
+// 		v = NULL;
+// 		p = u->edge;
 
-			if (u->h > v->h && b * e->f < e->c)
-				break;
-			else
-				v = NULL;
-		}
+// 		while (p != NULL) {
+// 			e = p->edge;
+// 			p = p->next;
 
-		if (v != NULL)
-			push(g, u, v, e);
-		else
-			relabel(g, u);
-	}
+// 			if (u == e->u) {
+// 				v = e->v;
+// 				b = 1;
+// 			} else {
+// 				v = e->u;
+// 				b = -1;
+// 			}
 
-	return g->t->e;
-}
+// 			if (u->h > v->h && b * e->f < e->c)
+// 				break;
+// 			else
+// 				v = NULL;
+// 		}
+
+// 		if (v != NULL)
+// 			push(g, u, v, e);
+// 		else
+// 			relabel(g, u);
+// 	}
+
+// 	return g->t->e;
+// }
 
 static void free_graph(graph_t* g)
 {
@@ -599,9 +620,9 @@ static void free_graph(graph_t* g)
 			free(p);
 			p = q;
 		}
-		pthread_mutex_destroy(&g->v[i].lock);
+		pthread_mutex_destroy(&g->v[i].mut);
 	}
-	pthread_mutex_destroy(&g->e_mut);
+	pthread_mutex_destroy(&g->g_mut);
 	free(g->v);
 	free(g->e);
 	free(g);
@@ -620,8 +641,8 @@ int main(int argc, char* argv[])
 
 	in = stdin;		/* same as System.in in Java.	*/
 
-	n = next_int();
-	m = next_int();
+	n = next_int();  /* nr nodes */
+	m = next_int();  /* nr vertecies */
 
 	/* skip C and P from the 6railwayplanning lab in EDAF05 */
 	next_int();
@@ -631,7 +652,7 @@ int main(int argc, char* argv[])
 
 	fclose(in);
 
-	f = preflow(g);
+	f = parallell_preflow(g);
 	//or do first push then start threads here?
 
 	printf("f = %d\n", f);
