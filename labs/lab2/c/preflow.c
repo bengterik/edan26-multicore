@@ -79,7 +79,7 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t* mut;
+	pthread_mutex_t mut;
 };
 
 struct edge_t {
@@ -91,7 +91,7 @@ struct edge_t {
 
 struct work_list_t {
 	node_t* 	node;
-	pthread_mutex_t* mut;
+	pthread_mutex_t mut;
 };
 
 struct graph_t {
@@ -499,26 +499,28 @@ static void node_work(void *threadarg) {
 	pthread_exit(NULL);
 }
 
-static void *work(graph_t* g) {
+static void *work(graph_t* g, work_list_t work_list) {
+	pthread_mutex_lock(&work_list.mut);
 	printf("Doing some work \n");
+	pthread_mutex_unlock(&work_list.mut);
+
 }
 
 static void load_balance(graph_t* g) {	
 	pthread_t thread[NBR_THREADS];
 	work_list_t work_lists[NBR_THREADS];
-	pthread_mutex_t work_list_mutxs[NBR_THREADS];
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		work_lists[i].node = NULL;
 		
-		if (pthread_mutex_init(&work_list_mutxs[i], NULL) != 0)
+		if (pthread_mutex_init(&work_lists[i].mut, NULL) != 0)
 			error("mutex_init failed");
-
-		work_lists[i].mut = work_list_mutxs;
 	}
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		if (pthread_create(&thread[i], NULL, (void*) work, g) != 0)
+		struct { graph_t* g; work_list_t work_list } arg = { g, work_lists[i] };
+		
+		if (pthread_create(&thread[i], NULL, (void*) work, &arg) != 0)
 			error("pthread_create failed");
 	}
 
