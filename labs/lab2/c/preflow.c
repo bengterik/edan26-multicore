@@ -440,7 +440,7 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static void *node_work(void *threadarg) {
+static void node_work(void *threadarg) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
 
@@ -494,6 +494,25 @@ static void *node_work(void *threadarg) {
 	pthread_exit(NULL);
 }
 
+static void *work(void *threadarg) {
+	printf("We have done loads of work!\n");
+}
+
+static void load_balance(graph_t* g) {	
+	pthread_t thread[4]; //testing w 2 threads
+
+	for (int i = 0; i < 4; i += 1) { 
+		if (pthread_create(&thread[i], NULL, work, (void*) g) != 0)
+			error("pthread_create failed");
+	}
+	for (int i = 0; i < 4; i += 1) { 
+		if (pthread_join(thread[i], NULL) != 0)
+			error("pthread_join failed");
+	}
+	
+	printf("Load balancing done!\n");
+}
+
 int parallell_preflow(graph_t* g) {
 	node_t*		s;
 	node_t*		u;
@@ -505,7 +524,6 @@ int parallell_preflow(graph_t* g) {
 	s = g->s; // S is source
 	s->h = g->n; // H of source is n
 
-	// Push to all reachable nodes from source
 	p = s->edge;
 	while (p != NULL) {
 		e = p->edge;
@@ -515,18 +533,7 @@ int parallell_preflow(graph_t* g) {
 		push(g, s, other(s, e), e); 
 	}
 
-	//now start threads on node_work()
-	pthread_t thread[4]; //testing w 2 threads
-	//work_args arg = {g}; //have graph as input to thread
-
-	for (int i = 0; i < 4; i += 1) { 
-		if (pthread_create(&thread[i], NULL, node_work, (void*) g) != 0)
-			error("pthread_create failed");
-	} //because otherwise the threads finished before multithreading but might only be bc small program
-	for (int i = 0; i < 4; i += 1) { 
-		if (pthread_join(thread[i], NULL) != 0)
-			error("pthread_join failed");
-	}
+	load_balance(g);
 
 	return g->t->e;
 }
@@ -653,7 +660,6 @@ int main(int argc, char* argv[])
 	fclose(in);
 
 	f = parallell_preflow(g);
-	//or do first push then start threads here?
 
 	printf("f = %d\n", f);
 
