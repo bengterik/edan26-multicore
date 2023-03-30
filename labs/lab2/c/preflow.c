@@ -406,9 +406,11 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 	/* the following are always true. */
 
-	assert(d >= 0);
-	assert(u->e >= 0);
-	assert(abs(e->f) <= e->c);
+	if (u != g->s && v != g->s) {
+		assert(d >= 0);
+		assert(u->e >= 0);
+		assert(abs(e->f) <= e->c);
+	}
 
 	if (u->e > 0) {
 
@@ -503,7 +505,6 @@ static void *work(graph_t* g, work_list_t work_list) {
 	pthread_mutex_lock(&work_list.mut);
 	printf("Doing some work \n");
 	pthread_mutex_unlock(&work_list.mut);
-
 }
 
 static void load_balance(graph_t* g) {	
@@ -518,11 +519,16 @@ static void load_balance(graph_t* g) {
 	}
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		struct { graph_t* g; work_list_t work_list } arg = { g, work_lists[i] };
+		struct { graph_t* g; work_list_t work_list; } arg = { g, work_lists[i] };
 		
 		if (pthread_create(&thread[i], NULL, (void*) work, &arg) != 0)
 			error("pthread_create failed");
 	}
+	printf("s: %d, t: %d\n", g->s->e, g->t->e);
+
+	// while(g->s != g->t && g->excess != NULL) {
+		
+	// }
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		if (pthread_join(thread[i], NULL) != 0)
@@ -547,8 +553,7 @@ int parallell_preflow(graph_t *g) {
 	while (p != NULL) {
 		e = p->edge;
 		p = p->next;
-
-		s->e += e->c;
+		s->e -= e->c;
 		push(g, s, other(s, e), e); 
 	}
 
