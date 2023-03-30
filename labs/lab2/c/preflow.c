@@ -494,15 +494,16 @@ static void node_work(void *threadarg) {
 	pthread_exit(NULL);
 }
 
-static void *work(void *threadarg) {
-	printf("We have done loads of work!\n");
+static void *work(graph_t* g) {
+	printf("G has %d nodes \n", g->n);
+	printf("G has %d edges \n", g->m);
 }
 
 static void load_balance(graph_t* g) {	
-	pthread_t thread[4]; //testing w 2 threads
+	pthread_t thread[4];
 
 	for (int i = 0; i < 4; i += 1) { 
-		if (pthread_create(&thread[i], NULL, work, (void*) g) != 0)
+		if (pthread_create(&thread[i], NULL, (void*) work, g) != 0)
 			error("pthread_create failed");
 	}
 	for (int i = 0; i < 4; i += 1) { 
@@ -513,7 +514,7 @@ static void load_balance(graph_t* g) {
 	printf("Load balancing done!\n");
 }
 
-int parallell_preflow(graph_t* g) {
+int parallell_preflow(graph_t *g) {
 	node_t*		s;
 	node_t*		u;
 	node_t*		v;
