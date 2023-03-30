@@ -538,8 +538,60 @@ int parallell_preflow(graph_t *g) {
 
 	return g->t->e;
 }
+
+static void free_graph(graph_t* g)
+{
+	int			i;
+	list_t*		p;
+	list_t*		q;
+
+	for (i = 0; i < g->n; i += 1) {
+		p = g->v[i].edge;
+		while (p != NULL) {
+			q = p->next;
+			free(p);
+			p = q;
+		}
+		pthread_mutex_destroy(&g->v[i].mut);
+	}
+	pthread_mutex_destroy(&g->g_mut);
+	free(g->v);
+	free(g->e);
+	free(g);
+}
+
+int main(int argc, char* argv[])
+{
+	FILE*		in;	/* input file set to stdin	*/
+	graph_t*	g;	/* undirected graph. 		*/
+	int		f;	/* output from preflow.		*/
+	int		n;	/* number of nodes.		*/
+	int		m;	/* number of edges.		*/
 	
 
+	progname = argv[0];	/* name is a string in argv[0]. */
+
+	in = stdin;		/* same as System.in in Java.	*/
+
+	n = next_int();  /* nr nodes */
+	m = next_int();  /* nr vertecies */
+
+	/* skip C and P from the 6railwayplanning lab in EDAF05 */
+	next_int();
+	next_int();
+
+	g = new_graph(in, n, m);
+
+	fclose(in);
+
+	f = parallell_preflow(g);
+
+	printf("f = %d\n", f);
+
+	free_graph(g);
+
+	return 0;
+}
 
 // int preflow(graph_t* g)
 // {
@@ -614,57 +666,3 @@ int parallell_preflow(graph_t *g) {
 
 // 	return g->t->e;
 // }
-
-static void free_graph(graph_t* g)
-{
-	int			i;
-	list_t*		p;
-	list_t*		q;
-
-	for (i = 0; i < g->n; i += 1) {
-		p = g->v[i].edge;
-		while (p != NULL) {
-			q = p->next;
-			free(p);
-			p = q;
-		}
-		pthread_mutex_destroy(&g->v[i].mut);
-	}
-	pthread_mutex_destroy(&g->g_mut);
-	free(g->v);
-	free(g->e);
-	free(g);
-}
-
-int main(int argc, char* argv[])
-{
-	FILE*		in;	/* input file set to stdin	*/
-	graph_t*	g;	/* undirected graph. 		*/
-	int		f;	/* output from preflow.		*/
-	int		n;	/* number of nodes.		*/
-	int		m;	/* number of edges.		*/
-	
-
-	progname = argv[0];	/* name is a string in argv[0]. */
-
-	in = stdin;		/* same as System.in in Java.	*/
-
-	n = next_int();  /* nr nodes */
-	m = next_int();  /* nr vertecies */
-
-	/* skip C and P from the 6railwayplanning lab in EDAF05 */
-	next_int();
-	next_int();
-
-	g = new_graph(in, n, m);
-
-	fclose(in);
-
-	f = parallell_preflow(g);
-
-	printf("f = %d\n", f);
-
-	free_graph(g);
-
-	return 0;
-}
