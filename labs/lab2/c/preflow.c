@@ -447,16 +447,13 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static void node_work(void *threadarg) {
+static void node_work(graph_t* g) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
 
 	node_t*		v; // currently pushing to
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
-
-	// get pointer to graph info
-	graph_t* g = (graph_t*) threadarg;
 
 	// retrive node with excess preflow an loop until none left
 	while ((u = leave_excess(g)) != NULL) {
@@ -486,13 +483,7 @@ static void node_work(void *threadarg) {
 		}
 
 		if (v != NULL) {
-			// pthread_mutex_lock(&u->mut);
-      		// pthread_mutex_lock(&v->mut);
-
 			push(g, u, v, e);
-
-			// pthread_mutex_unlock(&v->mut);
-			// pthread_mutex_unlock(&u->mut);
 		} else
 			relabel(g, u);
 	}
@@ -524,10 +515,11 @@ static void load_balance(graph_t* g) {
 		if (pthread_create(&thread[i], NULL, (void*) work, &arg) != 0)
 			error("pthread_create failed");
 	}
+
 	printf("s: %d, t: %d\n", g->s->e, g->t->e);
 
 	// while(g->s != g->t && g->excess != NULL) {
-		
+			
 	// }
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
@@ -553,10 +545,12 @@ int parallell_preflow(graph_t *g) {
 	while (p != NULL) {
 		e = p->edge;
 		p = p->next;
-		s->e -= e->c;
+		s->e += e->c;
+		b += e->c;
 		push(g, s, other(s, e), e); 
 	}
 
+	s->e -= b; // Get negative flow in source in order to terminate the algorithm
 	load_balance(g);
 
 	return g->t->e;
