@@ -36,6 +36,7 @@
 #include <pthread.h>
 
 #define PRINT		0	/* enable/disable prints. */
+#define NBR_THREADS 2
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -66,6 +67,7 @@ typedef struct graph_t	graph_t;
 typedef struct node_t	node_t;
 typedef struct edge_t	edge_t;
 typedef struct list_t	list_t;
+typedef struct work_list_t	work_list_t;
 
 struct list_t {
 	edge_t*		edge;
@@ -77,7 +79,7 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t mut;
+	pthread_mutex_t* mut;
 };
 
 struct edge_t {
@@ -85,6 +87,11 @@ struct edge_t {
 	node_t*		v;	/* the other. 			*/
 	int		f;	/* flow > 0 if from u to v.	*/
 	int		c;	/* capacity.			*/
+};
+
+struct work_list_t {
+	node_t* 	node;
+	pthread_mutex_t* mut;
 };
 
 struct graph_t {
@@ -314,8 +321,6 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	int		a;
 	int		b;
 	int		c;
-	pthread_t thread[n];
-	pthread_mutex_t mutex[n];
 	
 	g = xmalloc(sizeof(graph_t));
 
@@ -495,18 +500,29 @@ static void node_work(void *threadarg) {
 }
 
 static void *work(graph_t* g) {
-	printf("G has %d nodes \n", g->n);
-	printf("G has %d edges \n", g->m);
+	printf("Doing some work \n");
 }
 
 static void load_balance(graph_t* g) {	
-	pthread_t thread[4];
+	pthread_t thread[NBR_THREADS];
+	work_list_t work_lists[NBR_THREADS];
+	pthread_mutex_t work_list_mutxs[NBR_THREADS];
 
-	for (int i = 0; i < 4; i += 1) { 
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		work_lists[i].node = NULL;
+		
+		if (pthread_mutex_init(&work_list_mutxs[i], NULL) != 0)
+			error("mutex_init failed");
+
+		work_lists[i].mut = work_list_mutxs;
+	}
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		if (pthread_create(&thread[i], NULL, (void*) work, g) != 0)
 			error("pthread_create failed");
 	}
-	for (int i = 0; i < 4; i += 1) { 
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		if (pthread_join(thread[i], NULL) != 0)
 			error("pthread_join failed");
 	}
@@ -552,9 +568,7 @@ static void free_graph(graph_t* g)
 			free(p);
 			p = q;
 		}
-		pthread_mutex_destroy(&g->v[i].mut);
 	}
-	pthread_mutex_destroy(&g->g_mut);
 	free(g->v);
 	free(g->e);
 	free(g);
