@@ -375,12 +375,10 @@ static node_t* leave_excess(graph_t* g)
 	 *
 	 */
 
-	pthread_mutex_lock(&g->g_mut);
 	v = g->excess;
 
 	if (v != NULL)
 		g->excess = v->next;
-	pthread_mutex_unlock(&g->g_mut);
 	return v;
 }
 
@@ -447,7 +445,7 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static void node_work(graph_t* g) {
+static void node_work(graph_t* g, work_list_t work_list) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
 
@@ -494,7 +492,7 @@ static void node_work(graph_t* g) {
 
 static void *work(graph_t* g, work_list_t work_list) {
 	pthread_mutex_lock(&work_list.mut);
-	printf("Doing some work \n");
+	node_work(g, work_list);
 	pthread_mutex_unlock(&work_list.mut);
 }
 
