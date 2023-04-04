@@ -524,11 +524,14 @@ static void *work(graph_t* g, work_list_t work_list) {
 
 static void load_balance(graph_t* g) {	
 	pthread_t thread[NBR_THREADS];
-	work_list_t work_lists[NBR_THREADS];
+	work_list_t* work_lists;
+	
+	work_lists = xcalloc(NBR_THREADS, sizeof(work_list_t));
 	
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		work_lists[i].node = NULL;
-		
+		work_lists[i].size = 0;
+
 		if (pthread_mutex_init(&work_lists[i].mut, NULL) != 0)
 			error("mutex_init failed");
 	}
@@ -546,7 +549,7 @@ static void load_balance(graph_t* g) {
 	node_t* u;
 	while((u = leave_excess(g)) != NULL) {
 		printf("push node to work list\n");
-		push_work_list(u, &work_lists[0]);	
+		push_work_list(u, &work_lists[0]);
 	}
 
 	printf("%ld \n", work_lists[0].size);
