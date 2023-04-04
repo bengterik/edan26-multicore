@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -350,11 +350,12 @@ static void enter_excess(graph_t* g, node_t* v)
 	 * it first is simplest.
 	 *
 	 */
-	
+	pthread_mutex_lock(&g->mut);
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
+	pthread_mutex_unlock(&g->mut);
 }
 
 static node_t* leave_excess(graph_t* g)
@@ -366,10 +367,14 @@ static node_t* leave_excess(graph_t* g)
 	 *
 	 */
 
+	pthread_mutex_lock(&g->mut);
 	v = g->excess;
 
 	if (v != NULL)
 		g->excess = v->next;
+	
+	pthread_mutex_unlock(&g->mut);
+
 	return v;
 }
 
