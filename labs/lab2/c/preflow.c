@@ -90,6 +90,7 @@ struct edge_t {
 };
 
 struct work_list_t {
+	size_t		size;
 	node_t* 	node;
 	pthread_mutex_t mut;
 };
@@ -357,13 +358,10 @@ static void enter_excess(graph_t* g, node_t* v)
 	 *
 	 */
 	
-	pthread_mutex_unlock(&g->g_mut);
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
-	pthread_mutex_unlock(&g->g_mut);
-
 }
 
 static node_t* leave_excess(graph_t* g)
@@ -445,6 +443,34 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
+static node_t* pop_work_list(work_list_t* work_list){
+	node_t*		v;
+
+	pthread_mutex_lock(&work_list->mut);
+
+	work_list->size -= 1;
+
+	v = work_list->node;
+
+	if (v != NULL)
+		work_list->node = v->next;
+	
+	pthread_mutex_unlock(&work_list->mut);
+
+	return v;
+}
+
+static void push_work_list(node_t* node, work_list_t* work_list){
+
+	pthread_mutex_lock(&work_list->mut);
+	
+	work_list->size += 1;
+	node->next = work_list->node;
+	work_list->node = node;
+	
+	pthread_mutex_unlock(&work_list->mut);
+}
+
 static void node_work(graph_t* g, work_list_t work_list) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
@@ -499,7 +525,7 @@ static void *work(graph_t* g, work_list_t work_list) {
 static void load_balance(graph_t* g) {	
 	pthread_t thread[NBR_THREADS];
 	work_list_t work_lists[NBR_THREADS];
-
+	
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		work_lists[i].node = NULL;
 		
@@ -515,6 +541,18 @@ static void load_balance(graph_t* g) {
 	}
 
 	printf("s: %d, t: %d\n", g->s->e, g->t->e);
+
+
+	node_t* u;
+	while((u = leave_excess(g)) != NULL) {
+		printf("push node to work list\n");
+		push_work_list(u, &work_lists[0]);	
+	}
+
+	printf("%ld \n", work_lists[0].size);
+	for (int i = 0; i < work_lists[0].size; i++){
+		//printf("node\n");
+	}
 
 	// while(g->s != g->t && g->excess != NULL) {
 			
@@ -548,7 +586,7 @@ int parallell_preflow(graph_t *g) {
 		push(g, s, other(s, e), e); 
 	}
 
-	s->e -= b; // Get negative flow in source in order to terminate the algorithm
+	//s->e -= b; // Get negative flow in source in order to terminate the algorithm
 	load_balance(g);
 
 	return g->t->e;
