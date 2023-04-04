@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 #define NBR_THREADS 2
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -80,7 +80,6 @@ struct node_t {
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 	pthread_mutex_t mut;
-	pthread_cond_t cond;
 };
 
 struct edge_t {
@@ -88,13 +87,6 @@ struct edge_t {
 	node_t*		v;	/* the other. 			*/
 	int		f;	/* flow > 0 if from u to v.	*/
 	int		c;	/* capacity.			*/
-};
-
-struct work_list_t {
-	size_t		size;
-	node_t* 	node;
-	pthread_mutex_t mut;
-	pthread_cond_t cond;
 };
 
 struct graph_t {
@@ -105,8 +97,7 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
-	pthread_mutex_t g_mut;
-	pthread_cond_t cond;
+	pthread_mutex_t mut;
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -334,6 +325,12 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	g->v = xcalloc(n, sizeof(node_t));
 	g->e = xcalloc(m, sizeof(edge_t));
 
+	pthread_mutex_init(&g->mut, NULL);
+
+	for(int i=0; i < n; i++){
+		pthread_mutex_init(&g->v[i].mut, NULL);
+	}
+
 	g->s = &g->v[0];
 	g->t = &g->v[n-1];
 	g->excess = NULL;	
@@ -446,38 +443,7 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static node_t* pop_work_list(work_list_t* work_list){
-	node_t*		v;
-
-	pthread_mutex_lock(&work_list->mut);
-
-	work_list->size -= 1;
-
-	v = work_list->node;
-
-	if (v != NULL)
-		work_list->node = v->next;
-	
-	pthread_mutex_unlock(&work_list->mut);
-	pthread_cond_broadcast(&work_list->cond);
-
-	return v;
-}
-
-static void push_work_list(node_t* node, work_list_t* work_list){
-
-	pthread_mutex_lock(&work_list->mut);
-	
-	work_list->size += 1;
-	node->next = work_list->node;
-	work_list->node = node;
-	
-	pthread_mutex_unlock(&work_list->mut);
-
-	pthread_cond_broadcast(&work_list->cond);
-}
-
-static void node_work(graph_t* g, work_list_t work_list) {
+static void node_work(graph_t* g) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
 
@@ -487,7 +453,6 @@ static void node_work(graph_t* g, work_list_t work_list) {
 
 	// retrive node with excess preflow an loop until none left
 	while ((u = leave_excess(g)) != NULL) {
-		pr("The thread id = %d \n", pthread_self());
 		pr("selected u = %d with ", id(g, u));
 		pr("h = %d and e = %d\n", u->h, u->e);
 
@@ -518,69 +483,11 @@ static void node_work(graph_t* g, work_list_t work_list) {
 			relabel(g, u);
 	}
 
-    pr("The thread id = %d terminating \n", pthread_self());
 	pthread_exit(NULL);
 }
 
-static void *work(graph_t* g, work_list_t* work_list) {
-	printf("waiting for lock\n");
-	pthread_mutex_lock(&work_list->mut);
-	printf("work list size = %zu\n", work_list->size);
-	while(work_list->size == 0) {
-		pthread_cond_wait(&work_list->cond, &work_list->mut);
-	}
-
-	printf("working on work list\n");
-	pthread_mutex_unlock(&work_list->mut);
-}
-
-static void load_balance(graph_t* g) {	
-	pthread_t thread[NBR_THREADS];
-	work_list_t* work_lists;
+static void *work(graph_t* g) {
 	
-	work_lists = xcalloc(NBR_THREADS, sizeof(work_list_t));
-	
-	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		work_lists[i].node = NULL;
-		work_lists[i].size = 0;
-
-		if (pthread_cond_init(&work_lists[i].cond, NULL) != 0)
-			error("mutex_init failed");
-		
-		if (pthread_mutex_init(&work_lists[i].mut, NULL) != 0)
-			error("mutex_init failed");
-	}
-
-	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		struct { graph_t* g; work_list_t* work_list; } arg = { g, &work_lists[i] };
-		
-		if (pthread_create(&thread[i], NULL, (void*) work, &arg) != 0)
-			error("pthread_create failed");
-	}
-
-	printf("s: %d, t: %d\n", g->s->e, g->t->e);
-
-	node_t* u;
-	while((u = leave_excess(g)) != NULL) {
-		printf("push node to work list\n");
-		push_work_list(u, &work_lists[0]);
-	}
-
-	//printf("work list size = %ld \n", work_lists[0].size);
-	
-
-	// while(g->s != g->t && g->excess != NULL) {p
-			
-	// }
-
-	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		if (pthread_join(thread[i], NULL) != 0)
-			error("pthread_join failed");
-	}
-	
-	printf("Load balancing done!\n");
-	free(work_lists);
-
 }
 
 int parallell_preflow(graph_t *g) {
@@ -603,8 +510,20 @@ int parallell_preflow(graph_t *g) {
 		push(g, s, other(s, e), e); 
 	}
 
-	//s->e -= b; // Get negative flow in source in order to terminate the algorithm
-	load_balance(g);
+	pthread_t thread[NBR_THREADS];
+		
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		struct { graph_t* g;}* arg = malloc(sizeof(*arg));
+		arg->g = g;
+
+		if (pthread_create(&thread[i], NULL, (void*) work, arg) != 0)
+			error("pthread_create failed");
+	}
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		if (pthread_join(thread[i], NULL) != 0)
+			error("pthread_join failed");
+	}
 
 	return g->t->e;
 }
@@ -616,6 +535,7 @@ static void free_graph(graph_t* g)
 	list_t*		q;
 
 	for (i = 0; i < g->n; i += 1) {
+		pthread_mutex_destroy(&g->v->mut);
 		p = g->v[i].edge;
 		while (p != NULL) {
 			q = p->next;
@@ -623,6 +543,9 @@ static void free_graph(graph_t* g)
 			p = q;
 		}
 	}
+
+	pthread_mutex_destroy(&g->mut);
+
 	free(g->v);
 	free(g->e);
 	free(g);
