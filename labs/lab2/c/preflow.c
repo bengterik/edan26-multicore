@@ -80,6 +80,7 @@ struct node_t {
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 	pthread_mutex_t mut;
+	pthread_cond_t cond;
 };
 
 struct edge_t {
@@ -93,6 +94,7 @@ struct work_list_t {
 	size_t		size;
 	node_t* 	node;
 	pthread_mutex_t mut;
+	pthread_cond_t cond;
 };
 
 struct graph_t {
@@ -104,6 +106,7 @@ struct graph_t {
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
 	pthread_mutex_t g_mut;
+	pthread_cond_t cond;
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -456,6 +459,7 @@ static node_t* pop_work_list(work_list_t* work_list){
 		work_list->node = v->next;
 	
 	pthread_mutex_unlock(&work_list->mut);
+	pthread_cond_broadcast(&work_list->cond);
 
 	return v;
 }
@@ -469,6 +473,8 @@ static void push_work_list(node_t* node, work_list_t* work_list){
 	work_list->node = node;
 	
 	pthread_mutex_unlock(&work_list->mut);
+
+	pthread_cond_broadcast(&work_list->cond);
 }
 
 static void node_work(graph_t* g, work_list_t work_list) {
@@ -516,10 +522,16 @@ static void node_work(graph_t* g, work_list_t work_list) {
 	pthread_exit(NULL);
 }
 
-static void *work(graph_t* g, work_list_t work_list) {
-	pthread_mutex_lock(&work_list.mut);
-	node_work(g, work_list);
-	pthread_mutex_unlock(&work_list.mut);
+static void *work(graph_t* g, work_list_t* work_list) {
+	printf("waiting for lock\n");
+	pthread_mutex_lock(&work_list->mut);
+	printf("work list size = %zu\n", work_list->size);
+	while(work_list->size == 0) {
+		pthread_cond_wait(&work_list->cond, &work_list->mut);
+	}
+
+	printf("working on work list\n");
+	pthread_mutex_unlock(&work_list->mut);
 }
 
 static void load_balance(graph_t* g) {	
@@ -532,12 +544,15 @@ static void load_balance(graph_t* g) {
 		work_lists[i].node = NULL;
 		work_lists[i].size = 0;
 
+		if (pthread_cond_init(&work_lists[i].cond, NULL) != 0)
+			error("mutex_init failed");
+		
 		if (pthread_mutex_init(&work_lists[i].mut, NULL) != 0)
 			error("mutex_init failed");
 	}
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		struct { graph_t* g; work_list_t work_list; } arg = { g, work_lists[i] };
+		struct { graph_t* g; work_list_t* work_list; } arg = { g, &work_lists[i] };
 		
 		if (pthread_create(&thread[i], NULL, (void*) work, &arg) != 0)
 			error("pthread_create failed");
@@ -545,17 +560,14 @@ static void load_balance(graph_t* g) {
 
 	printf("s: %d, t: %d\n", g->s->e, g->t->e);
 
-
 	node_t* u;
 	while((u = leave_excess(g)) != NULL) {
 		printf("push node to work list\n");
 		push_work_list(u, &work_lists[0]);
 	}
 
-	printf("work list size = %ld \n", work_lists[0].size);
-	for (int i = 0; i < work_lists[0].size; i++){
-		//printf("node\n");
-	}
+	//printf("work list size = %ld \n", work_lists[0].size);
+	
 
 	// while(g->s != g->t && g->excess != NULL) {p
 			
