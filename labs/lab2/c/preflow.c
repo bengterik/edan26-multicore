@@ -36,7 +36,7 @@
 #include <pthread.h>
 
 #define PRINT		1	/* enable/disable prints. */
-#define NBR_THREADS 2
+#define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -300,13 +300,6 @@ static void connect(node_t* u, node_t* v, int c, edge_t* e)
 	add_edge(v, e);
 }
 
-// struct node_t {
-// 	int		h;	/* height.			*/
-// 	int		e;	/* excess flow.			*/
-// 	list_t*		edge;	/* adjacency list.		*/
-// 	node_t*		next;	/* with excess preflow.		*/
-// };
-
 static graph_t* new_graph(FILE* in, int n, int m)
 {
 	graph_t*	g;
@@ -443,32 +436,33 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static void node_work(graph_t* g) {
+
+
+static void *work(void *arg) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
 
 	node_t*		v; // currently pushing to
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
+    struct graph_t *g = arg;
 
-	// retrive node with excess preflow an loop until none left
 	while ((u = leave_excess(g)) != NULL) {
 		pr("selected u = %d with ", id(g, u));
 		pr("h = %d and e = %d\n", u->h, u->e);
 
-		//find adj list
 		p = u->edge;
 
 		while (p != NULL) {
 			e = p->edge; 
 			p = p->next;
 
-			if (u == e->u) { // to see what direction the flow till go
+			if (u == e->u) { 
 				v = e->v;
-				b = 1; //flow
+				b = 1; 
 			} else {
 				v = e->u;
-				b = -1; //flow backwards
+				b = -1;
 			}
 
 			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
@@ -482,12 +476,6 @@ static void node_work(graph_t* g) {
 		} else
 			relabel(g, u);
 	}
-
-	pthread_exit(NULL);
-}
-
-static void *work(graph_t* g) {
-	
 }
 
 int parallell_preflow(graph_t *g) {
@@ -513,10 +501,8 @@ int parallell_preflow(graph_t *g) {
 	pthread_t thread[NBR_THREADS];
 		
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		struct { graph_t* g;}* arg = malloc(sizeof(*arg));
-		arg->g = g;
-
-		if (pthread_create(&thread[i], NULL, (void*) work, arg) != 0)
+		
+		if (pthread_create(&thread[i], NULL, (void*) work, g) != 0)
 			error("pthread_create failed");
 	}
 
