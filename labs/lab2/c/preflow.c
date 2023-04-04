@@ -552,12 +552,12 @@ static void load_balance(graph_t* g) {
 		push_work_list(u, &work_lists[0]);
 	}
 
-	printf("%ld \n", work_lists[0].size);
+	printf("work list size = %ld \n", work_lists[0].size);
 	for (int i = 0; i < work_lists[0].size; i++){
 		//printf("node\n");
 	}
 
-	// while(g->s != g->t && g->excess != NULL) {
+	// while(g->s != g->t && g->excess != NULL) {p
 			
 	// }
 
@@ -567,6 +567,8 @@ static void load_balance(graph_t* g) {
 	}
 	
 	printf("Load balancing done!\n");
+	free(work_lists);
+
 }
 
 int parallell_preflow(graph_t *g) {
