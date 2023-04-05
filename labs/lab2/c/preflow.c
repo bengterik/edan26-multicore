@@ -36,7 +36,7 @@
 #include <pthread.h>
 
 #define PRINT		0	/* enable/disable prints. */
-#define NBR_THREADS 1
+#define NBR_THREADS 4
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -394,9 +394,20 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 	}
 
 	pr("pushing %d\n", d);
+		
+	if (u < v) {
+		pthread_mutex_lock(&u->mut);
+		pthread_mutex_lock(&v->mut);
+	} else {
+		pthread_mutex_lock(&v->mut);
+		pthread_mutex_lock(&u->mut);
+	}
 
 	u->e -= d;
 	v->e += d;
+
+	pthread_mutex_unlock(&u->mut);
+	pthread_mutex_unlock(&v->mut);
 
 	/* the following are always true. */
 
@@ -407,6 +418,7 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 	}
 
 	if (u->e > 0) {
+			
 
 		/* still some remaining so let u push more. */
 
@@ -422,11 +434,15 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 		enter_excess(g, v);
 	}
+	
 }
 
 static void relabel(graph_t* g, node_t* u)
 {
+	pthread_mutex_lock(&g->mut);
 	u->h += 1;
+
+	pthread_mutex_unlock(&g->mut);
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
 
@@ -459,8 +475,11 @@ static void *work(void *arg) {
 		p = u->edge;
 
 		while (p != NULL) {
+
+			pthread_mutex_lock(&g->mut);
 			e = p->edge; 
 			p = p->next;
+			pthread_mutex_unlock(&g->mut);
 
 			if (u == e->u) { 
 				v = e->v;
@@ -526,7 +545,7 @@ static void free_graph(graph_t* g)
 	list_t*		q;
 
 	for (i = 0; i < g->n; i += 1) {
-		pthread_mutex_destroy(&g->v->mut);
+		pthread_mutex_destroy(&g->v[i].mut);
 		p = g->v[i].edge;
 		while (p != NULL) {
 			q = p->next;
