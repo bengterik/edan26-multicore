@@ -32,8 +32,10 @@ class Graph {
 	void enter_excess(Node u)
 	{
 		if (u != node[s] && u != node[t]) {
-			u.next = excess;
-			excess = u;
+			synchronized (this) {
+				u.next = excess;
+				excess = u;
+			}
 		}
 	}
 
@@ -47,8 +49,8 @@ class Graph {
 
 	void relabel(Node u)
 	{
-		print("relabeling " + u.i + " => h = " + u.h + "\n");
-		u.h += 1;
+		print("relabeling " + u.i + " => h = " + u.height() + "\n");
+		u.relabel();
 		enter_excess(u);
 	}
 
@@ -64,23 +66,25 @@ class Graph {
 
 		int d;
 		if (u == a.u) {
-			d = min(u.e, a.c - a.f);
-			a.f += d;
+			d = min(u.excess(), a.capacity() - a.flow());
+			a.addFlow(d);
 		} else {
-			d = min(u.e, a.c + a.f);
-			a.f -= d;
+			d = min(u.excess(), a.capacity() + a.flow());
+			a.addFlow(-d);
 		}
 
 		print("pushing " + d + "\n");
+		
+		u.addExcess(-d);
+		v.addExcess(d);
 
-		u.e -= d;
-		v.e += d;
-
-		if (u.e > 0) {	
+		if (u.excess() > 0) {	
+			print("u.excess() = " + u.excess() + " so entering excess\n");
 			enter_excess(u);
 		}
 	
-		if (v.e == d) {	
+		if (v.excess() == d) {
+			print("v.excess() = " + v.excess() + " so entering excess\n");
 			enter_excess(v);
 		}
 
@@ -96,13 +100,13 @@ class Graph {
 		
 		this.s = s;
 		this.t = t;
-		node[s].h = n;
+		node[s].setHeight(n);
 
 		iter = node[s].adj.listIterator();
 		while (iter.hasNext()) {
 			a = iter.next();
 
-			node[s].e += a.c;
+			node[s].addExcess(a.capacity());
 
 			push(node[s], other(a, node[s]), a);
 		}
@@ -125,7 +129,7 @@ class Graph {
 					b = -1;
 				}
 
-				if (u.h > v.h && b * a.f < a.c)
+				if (u.height() > v.height() && b * a.flow() < a.c)
 					break;
 				else
 					v = null;
@@ -134,16 +138,16 @@ class Graph {
 			if (v != null)
 				push(u, v, a);
 			else
-				relabel(u);
+				u.relabel();
 		}
 
-		return node[t].e;
+		return node[t].excess();
 	}
 }
 
 class Node {
-	int	h;
-	int	e;
+	private int	h;
+	private int	e;
 	int	i;
 	Node	next;
 	LinkedList<Edge>	adj;
@@ -152,6 +156,26 @@ class Node {
 	{
 		this.i = i;
 		adj = new LinkedList<Edge>();
+	}
+
+	public void addExcess(int i){
+		e += i;
+	}
+
+	public void relabel(){
+		h++;
+	}
+
+	public int excess(){
+		return e;
+	}
+
+	public int height(){
+		return h;
+	}
+	
+	public void setHeight(int i){
+		h = i;
 	}
 }
 
@@ -166,7 +190,22 @@ class Edge {
 		this.u = u;
 		this.v = v;
 		this.c = c;
+	}
 
+	public void addFlow(int i){
+		f += i;
+	}
+
+	public void addCapacity(int i){
+		c += i;
+	}
+
+	public int flow(){
+		return f;
+	}
+
+	public int capacity(){
+		return c;
 	}
 }
 
