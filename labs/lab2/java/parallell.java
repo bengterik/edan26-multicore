@@ -47,7 +47,7 @@ class Graph {
 
 	void relabel(Node u)
 	{
-		print("relabeling " + u.i + " => h = " + u.h);
+		print("relabeling " + u.i + " => h = " + u.h + "\n");
 		u.h += 1;
 		enter_excess(u);
 	}
@@ -116,6 +116,19 @@ class Graph {
 			iter = u.adj.listIterator();
 			while (iter.hasNext()) {
 				a = iter.next();
+				
+				if (u == a.u) {
+					v = a.v;
+					b = 1;
+				} else {
+					v = a.u;
+					b = -1;
+				}
+
+				if (u.h > v.h && b * a.f < a.c)
+					break;
+				else
+					v = null;
 			}
 
 			if (v != null)
