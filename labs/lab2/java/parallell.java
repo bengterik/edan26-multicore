@@ -32,10 +32,9 @@ class Graph {
 	void enter_excess(Node u)
 	{
 		if (u != node[s] && u != node[t]) {
-			synchronized (this) {
-				u.next = excess;
-				excess = u;
-			}
+			u.next = excess;
+			excess = u;
+			print("entering excess " + u.i + "\n");
 		}
 	}
 
@@ -112,15 +111,16 @@ class Graph {
 		}
 
 		while (excess != null) {
+			print("node " + excess.i + " has excess\n");
 			u = excess;
 			v = null;
 			a = null;
 			excess = u.next;
-
+		
 			iter = u.adj.listIterator();
 			while (iter.hasNext()) {
 				a = iter.next();
-				
+				print("considering " + u.i + "->" + a.v.i + " \n");
 				if (u == a.u) {
 					v = a.v;
 					b = 1;
