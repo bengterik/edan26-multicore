@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.io.*;
 
 class Graph {
-
+	boolean print = true;
 	int	s;
 	int	t;
 	int	n;
@@ -14,6 +14,12 @@ class Graph {
 	Node	excess;		// list of nodes with excess preflow
 	Node	node[];
 	Edge	edge[];
+
+	void print(String s) {
+		if (print) {
+			System.out.print(s);
+		}
+	}
 
 	Graph(Node node[], Edge edge[])
 	{
@@ -41,30 +47,43 @@ class Graph {
 
 	void relabel(Node u)
 	{
+		print("relabeling " + u.i + " => h = " + u.h);
 		u.h += 1;
+		enter_excess(u);
 	}
 
-	// if (u == e->u) {
-	// 	d = MIN(u->e, e->c - e->f);
-	// 	e->f += d;
-	// } else {
-	// 	d = MIN(u->e, e->c + e->f);
-	// 	e->f -= d;
-	// }
-
-	int min(int a, int b) {
+	int min(int a, int b) 
+	{
 		return a <= b ? a : b;
 	}
 
 	void push(Node u, Node v, Edge a)
 	{
+		print("selected " + u.i + "->" + v.i + " for push ");
+		print("f = " + a.f + " c = " + a.c + " so ");
+
+		int d;
 		if (u == a.u) {
-			int d = min(u.e, a.c - a.f);
+			d = min(u.e, a.c - a.f);
 			a.f += d;
 		} else {
-			int d = min(u.e, a.c + a.f);
+			d = min(u.e, a.c + a.f);
 			a.f -= d;
-		}	
+		}
+
+		print("pushing " + d + "\n");
+
+		u.e -= d;
+		v.e += d;
+
+		if (u.e > 0) {	
+			enter_excess(u);
+		}
+	
+		if (v.e == d) {	
+			enter_excess(v);
+		}
+
 	}
 
 	int preflow(int s, int t)
