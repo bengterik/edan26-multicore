@@ -34,7 +34,6 @@ class Graph {
 		if (u != node[s] && u != node[t]) {
 			u.next = excess;
 			excess = u;
-			print("entering excess " + u.i + "\n");
 		}
 	}
 
@@ -51,6 +50,10 @@ class Graph {
 		print("relabeling " + u.i + " => h = " + u.height() + "\n");
 		u.relabel();
 		enter_excess(u);
+		if (u.height() > n+2) {
+			print("h > n+1 so exiting\n");
+			System.exit(1);
+		}
 	}
 
 	int min(int a, int b) 
@@ -78,12 +81,12 @@ class Graph {
 		v.addExcess(d);
 
 		if (u.excess() > 0) {	
-			print("u.excess() = " + u.excess() + " so entering excess\n");
+			print(u.i + " has " + u.excess() + " so entering excess\n");
 			enter_excess(u);
 		}
 	
 		if (v.excess() == d) {
-			print("v.excess() = " + v.excess() + " so entering excess\n");
+			print(v.i + " has " + v.excess() + " so entering excess\n");
 			enter_excess(v);
 		}
 
@@ -111,16 +114,15 @@ class Graph {
 		}
 
 		while (excess != null) {
-			print("node " + excess.i + " has excess\n");
 			u = excess;
 			v = null;
 			a = null;
 			excess = u.next;
 		
 			iter = u.adj.listIterator();
+			inner:
 			while (iter.hasNext()) {
 				a = iter.next();
-				print("considering " + u.i + "->" + a.v.i + " \n");
 				if (u == a.u) {
 					v = a.v;
 					b = 1;
@@ -129,16 +131,18 @@ class Graph {
 					b = -1;
 				}
 
-				if (u.height() > v.height() && b * a.flow() < a.c)
-					break;
-				else
+				if (u.height() > v.height() && b * a.flow() < a.capacity()) {
+					break inner;
+				} else {
 					v = null;
+				}
 			}
 
-			if (v != null)
+			if (v != null) {
 				push(u, v, a);
-			else
-				u.relabel();
+			} else {
+				relabel(u);
+			}
 		}
 
 		return node[t].excess();
@@ -158,12 +162,12 @@ class Node {
 		adj = new LinkedList<Edge>();
 	}
 
-	public void addExcess(int i){
-		e += i;
-	}
-
 	public void relabel(){
 		h++;
+	}
+
+	public void addExcess(int i){
+		e += i;
 	}
 
 	public int excess(){
@@ -194,10 +198,6 @@ class Edge {
 
 	public void addFlow(int i){
 		f += i;
-	}
-
-	public void addCapacity(int i){
-		c += i;
 	}
 
 	public int flow(){
@@ -243,7 +243,30 @@ class Preflow {
 		}
 
 		g = new Graph(node, edge);
+
+		int nThreads = 1;
+		Thread[] thread = new Thread[nThreads];
+
+		for(i=0; i < nThreads; i++) {
+			Runnable r = new Runnable() {
+				public void run() {
+					g.preflow(0, n-1);
+				}
+			};
+			thread[i] = new Thread(r);
+			thread[i].start();
+		}
+
+		for (i=0; i < nThreads; ++i) {
+			try {
+				thread[i].join();
+			} catch (Exception e) {
+				System.out.println("" + e);
+			}
+		}
+		
 		f = g.preflow(0, n-1);
+
 		double	end = System.currentTimeMillis();
 		System.out.println("t = " + (end - begin) / 1000.0 + " s");
 		System.out.println("f = " + f);

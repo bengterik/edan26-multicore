@@ -1,5 +1,5 @@
 java:
 	javac parallell.java
-	java Preflow < ../../data/tiny/0.in #railwayplanning/secret/0mini.in
+	java Preflow < ../../data/railwayplanning/secret/0mini.in # ../../data/tiny/0.in
 	#time sh check-solution.sh java Preflow
 	@echo PASS all tests
