@@ -101,33 +101,20 @@ class Graph {
 
 	}
 
-	int preflow(int s, int t)
-	{
+	void work() {
 		ListIterator<Edge>	iter;
 		int			b;
 		Edge			a;
 		Node			u;
 		Node			v;
-		
-		this.s = s;
-		this.t = t;
-		node[s].setHeight(n);
-
-		iter = node[s].adj.listIterator();
-		while (iter.hasNext()) {
-			a = iter.next();
-
-			node[s].addExcess(a.capacity());
-
-			push(node[s], other(a, node[s]), a);
-		}
-
 		while (excess != null) {
-			u = excess;
-			v = null;
-			a = null;
-			excess = u.next;
-		
+			synchronized (this) {
+				u = excess;
+				v = null;
+				a = null;
+				excess = u.next;
+			}
+
 			iter = u.adj.listIterator();
 			inner:
 			while (iter.hasNext()) {
@@ -151,6 +138,49 @@ class Graph {
 				push(u, v, a);
 			} else {
 				relabel(u);
+			}
+		}
+	}
+
+	int parallellPreflow(int s, int t)
+	{
+		ListIterator<Edge>	iter;
+		Edge			a;
+		int i;
+				
+		this.s = s;
+		this.t = t;
+		node[s].setHeight(n);
+
+		iter = node[s].adj.listIterator();
+		while (iter.hasNext()) {
+			a = iter.next();
+
+			node[s].addExcess(a.capacity());
+
+			push(node[s], other(a, node[s]), a);
+		}
+		
+		int nThreads = 2;
+		Thread[] thread = new Thread[nThreads];
+		
+		Graph g = this;
+
+		for(i=0; i < nThreads; i++) {
+			Runnable r = new Runnable() {
+				public void run() {
+					g.work();
+				}
+			};
+			thread[i] = new Thread(r);
+			thread[i].start();
+		}
+
+		for (i=0; i < nThreads; ++i) {
+			try {
+				thread[i].join();
+			} catch (Exception e) {
+				System.out.println("" + e);
 			}
 		}
 
@@ -255,26 +285,7 @@ class Preflow {
 
 		g = new Graph(node, edge);
 
-		int nThreads = 1;
-		Thread[] thread = new Thread[nThreads];
-
-		for(i=0; i < nThreads; i++) {
-			Runnable r = new Runnable() {
-				public void run() {
-					g.preflow(0, n-1);
-				}
-			};
-			thread[i] = new Thread(r);
-			thread[i].start();
-		}
-
-		for (i=0; i < nThreads; ++i) {
-			try {
-				thread[i].join();
-			} catch (Exception e) {
-				System.out.println("" + e);
-			}
-		}
+		g.parallellPreflow(0, n-1);
 		
 		f = g.node[n-1].excess();
 
