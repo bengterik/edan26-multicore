@@ -394,20 +394,9 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 	}
 
 	pr("pushing %d\n", d);
-		
-	if (u < v) {
-		pthread_mutex_lock(&u->mut);
-		pthread_mutex_lock(&v->mut);
-	} else {
-		pthread_mutex_lock(&v->mut);
-		pthread_mutex_lock(&u->mut);
-	}
 
 	u->e -= d;
 	v->e += d;
-
-	pthread_mutex_unlock(&u->mut);
-	pthread_mutex_unlock(&v->mut);
 
 	/* the following are always true. */
 
@@ -466,20 +455,18 @@ static void *work(void *arg) {
 	node_t*		v; // currently pushing to
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
+	int nodes_worked_on = 0;
     struct graph_t *g = arg;
 
 	while ((u = leave_excess(g)) != NULL) {
 		pr("selected u = %d with ", id(g, u));
 		pr("h = %d and e = %d\n", u->h, u->e);
-
+		nodes_worked_on++;
 		p = u->edge;
 
 		while (p != NULL) {
-
-			pthread_mutex_lock(&g->mut);
 			e = p->edge; 
 			p = p->next;
-			pthread_mutex_unlock(&g->mut);
 
 			if (u == e->u) { 
 				v = e->v;
@@ -489,17 +476,31 @@ static void *work(void *arg) {
 				b = -1;
 			}
 
+			if (u < v) {
+				pthread_mutex_lock(&u->mut);
+				pthread_mutex_lock(&v->mut);
+			} else {
+				pthread_mutex_lock(&v->mut);
+				pthread_mutex_lock(&u->mut);
+			}
+
 			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
 				break;
 			else
+				pthread_mutex_unlock(&u->mut);
+				pthread_mutex_unlock(&v->mut);
 				v = NULL;
 		}
 
 		if (v != NULL) {
 			push(g, u, v, e);
+			pthread_mutex_unlock(&u->mut);
+			pthread_mutex_unlock(&v->mut);
 		} else
 			relabel(g, u);
 	}
+
+	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
 }
 
 int parallell_preflow(graph_t *g) {

@@ -1,9 +1,9 @@
 main:
 # gcc -o preflow preflow.c -g -O3 -pthread
-# ./preflow < ../../data/railwayplanning/secret/0mini.in
 # cat ../../data/railwayplanning/secret/0mini.ans
 	gcc -o preflow preflow.c -g -O3 -pthread
 	time sh check-solution.sh ./preflow
+	#./preflow < ../../data/railwayplanning/secret/4huge.in
 	@echo PASS all tests
 
 #	time sh check-solution.sh ./preflow		// for all
