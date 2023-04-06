@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.io.*;
 
 class Graph {
-	boolean print = true;
+	boolean print = false;
 	int	s;
 	int	t;
 	int	n;
