@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.io.*;
 
 class Graph {
-	boolean print = true;
+	boolean print = false;
 	int	s;
 	int	t;
 	int	n;
@@ -265,7 +265,7 @@ class Preflow {
 			}
 		}
 		
-		f = g.preflow(0, n-1);
+		f = g.node[n-1].excess();
 
 		double	end = System.currentTimeMillis();
 		System.out.println("t = " + (end - begin) / 1000.0 + " s");
