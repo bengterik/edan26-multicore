@@ -29,7 +29,7 @@ class Graph {
 		this.m		= edge.length;
 	}
 
-	void enter_excess(Node u)
+	synchronized void enter_excess(Node u)
 	{
 		if (u != node[s] && u != node[t]) {
 			u.next = excess;
@@ -45,15 +45,11 @@ class Graph {
 			return a.u;
 	}
 
-	void relabel(Node u)
+	synchronized void relabel(Node u)
 	{
 		print("relabeling " + u.i + " => h = " + u.height() + "\n");
 		u.relabel();
 		enter_excess(u);
-		if (u.height() > n+2) {
-			print("h > n+1 so exiting\n");
-			System.exit(1);
-		}
 	}
 
 	int min(int a, int b) 
@@ -76,9 +72,22 @@ class Graph {
 		}
 
 		print("pushing " + d + "\n");
-		
-		u.addExcess(-d);
-		v.addExcess(d);
+
+		if (u.i < v.i) {
+			synchronized (u) {
+				synchronized (v) {
+					u.addExcess(-d);
+					v.addExcess(d);
+				}
+			}
+		} else {
+			synchronized (v) {
+				synchronized (u) {
+					u.addExcess(-d);
+					v.addExcess(d);
+				}
+			}
+		}
 
 		if (u.excess() > 0) {	
 			print(u.i + " has " + u.excess() + " so entering excess\n");
@@ -162,19 +171,19 @@ class Node {
 		adj = new LinkedList<Edge>();
 	}
 
-	public void relabel(){
+	synchronized public void relabel(){
 		h++;
 	}
 
-	public void addExcess(int i){
+	synchronized public void addExcess(int i){
 		e += i;
 	}
 
-	public int excess(){
+	synchronized public int excess(){
 		return e;
 	}
 
-	public int height(){
+	synchronized public int height(){
 		return h;
 	}
 	
@@ -196,15 +205,15 @@ class Edge {
 		this.c = c;
 	}
 
-	public void addFlow(int i){
+	synchronized public void addFlow(int i){
 		f += i;
 	}
 
-	public int flow(){
+	synchronized public int flow(){
 		return f;
 	}
 
-	public int capacity(){
+	synchronized public int capacity(){
 		return c;
 	}
 }
@@ -241,6 +250,8 @@ class Preflow {
 			node[u].adj.addLast(edge[i]);
 			node[v].adj.addLast(edge[i]);
 		}
+		
+		s.close();
 
 		g = new Graph(node, edge);
 
