@@ -2,11 +2,12 @@ import java.util.Scanner;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.LinkedList;
+import java.util.concurrent.locks.ReentrantLock;
 
 import java.io.*;
 
 class Graph {
-	boolean print = false;
+	boolean print = true;
 	int	s;
 	int	t;
 	int	n;
@@ -35,6 +36,15 @@ class Graph {
 			u.next = excess;
 			excess = u;
 		}
+	}
+
+	synchronized Node leave_excess(){
+		Node v = excess;
+
+		if (v != null)
+			excess = v.next;
+
+		return v;
 	}
 
 	Node other(Edge a, Node u)
@@ -74,21 +84,13 @@ class Graph {
 		print("pushing " + d + "\n");
 
 		if (u.i < v.i) {
-			synchronized (u) {
-				synchronized (v) {
-					u.addExcess(-d);
-					v.addExcess(d);
-				}
-			}
+			u.addExcess(-d);
+			v.addExcess(d);
 		} else {
-			synchronized (v) {
-				synchronized (u) {
-					u.addExcess(-d);
-					v.addExcess(d);
-				}
-			}
+			u.addExcess(-d);
+			v.addExcess(d);
 		}
-
+		
 		if (u.excess() > 0) {	
 			print(u.i + " has " + u.excess() + " so entering excess\n");
 			enter_excess(u);
@@ -107,13 +109,13 @@ class Graph {
 		Edge			a;
 		Node			u;
 		Node			v;
-		while (excess != null) {
-			synchronized (this) {
-				u = excess;
-				v = null;
-				a = null;
-				excess = u.next;
-			}
+		int nodesWorkedOn = 0;
+
+
+		while ((u = leave_excess()) != null) {
+			v = null;
+			a = null;
+			nodesWorkedOn++;
 
 			iter = u.adj.listIterator();
 			inner:
@@ -127,19 +129,33 @@ class Graph {
 					b = -1;
 				}
 
+				if (u.i < v.i) {
+					u.lock.lock();
+					v.lock.lock();
+				} else {
+					v.lock.lock();
+					u.lock.lock();
+				}
+
+
 				if (u.height() > v.height() && b * a.flow() < a.capacity()) {
 					break inner;
 				} else {
+					u.lock.unlock();
+					v.lock.unlock();
 					v = null;
 				}
 			}
 
 			if (v != null) {
 				push(u, v, a);
+				u.lock.unlock();
+				v.lock.unlock();
 			} else {
 				relabel(u);
 			}
 		}
+		print(nodesWorkedOn + " nodes worked on \n");
 	}
 
 	int parallellPreflow(int s, int t)
@@ -161,7 +177,7 @@ class Graph {
 			push(node[s], other(a, node[s]), a);
 		}
 		
-		int nThreads = 2;
+		int nThreads = 4;
 		Thread[] thread = new Thread[nThreads];
 		
 		Graph g = this;
@@ -194,6 +210,7 @@ class Node {
 	int	i;
 	Node	next;
 	LinkedList<Edge>	adj;
+	ReentrantLock lock = new ReentrantLock();
 
 	Node(int i)
 	{
@@ -285,10 +302,8 @@ class Preflow {
 
 		g = new Graph(node, edge);
 
-		g.parallellPreflow(0, n-1);
+		f = g.parallellPreflow(0, n-1);
 		
-		f = g.node[n-1].excess();
-
 		double	end = System.currentTimeMillis();
 		System.out.println("t = " + (end - begin) / 1000.0 + " s");
 		System.out.println("f = " + f);
