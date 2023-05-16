@@ -1,0 +1,29 @@
+Lab 2
+1. Data races and deadlocks 
+The entire graph has a lock that protects:
+- entering excess
+- leaving excess
+- relabeling
+
+Then, each node has lock for when pushes are made to and from that node.
+
+Could they be more granular?
+
+For the node locks an order u < v is enforced to avoid deadlocks.
+
+2. Load balancing
+In this implementation, each thread will pick from the excess queue, and if the queue is empty the thread will terminate. At first I thought this would create very uneven workloads between the threads, but when examining how many nodes each thread got it was not that uneven. I tried to implement signaling with each thread having its' own work queue and a thread dedicated to handing out work. Ended up too complex..
+
+3. Faster than sequential?
+No, not at all...
+
+4. C vs JVM
+C was faster, 32 vs 55 sec.
+
+5. Source codes
+
+6. Improvements
+Other than load balancing I was not sure what to improve. 
+Ideas:
+- partition the graph so that the lock contention for a single node decreases
+- divide the work in rounds, do pushes and relabels seperately? 
