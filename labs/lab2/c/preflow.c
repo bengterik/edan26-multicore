@@ -428,10 +428,10 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 static void relabel(graph_t* g, node_t* u)
 {
-	pthread_mutex_lock(&g->mut);
+	pthread_mutex_lock(&u->mut);
 	u->h += 1;
 
-	pthread_mutex_unlock(&g->mut);
+	pthread_mutex_unlock(&u->mut);
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
 
@@ -496,8 +496,9 @@ static void *work(void *arg) {
 			push(g, u, v, e);
 			pthread_mutex_unlock(&u->mut);
 			pthread_mutex_unlock(&v->mut);
-		} else
+		} else {
 			relabel(g, u);
+		}
 	}
 
 	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);

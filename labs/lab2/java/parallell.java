@@ -152,7 +152,10 @@ class Graph {
 				u.lock.unlock();
 				v.lock.unlock();
 			} else {
+				u.lock.lock();
 				relabel(u);
+				u.lock.unlock();
+
 			}
 		}
 		print(nodesWorkedOn + " nodes worked on \n");
