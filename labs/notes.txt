@@ -1,4 +1,7 @@
 Lab 2
+Maila Jonas
+Redovisat för David Engström
+
 1. Data races and deadlocks 
 The entire graph has a lock that protects:
 - entering excess
@@ -27,3 +30,4 @@ Other than load balancing I was not sure what to improve.
 Ideas:
 - partition the graph so that the lock contention for a single node decreases
 - divide the work in rounds, do pushes and relabels seperately? 
+
