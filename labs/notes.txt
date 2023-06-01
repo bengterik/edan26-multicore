@@ -1,3 +1,25 @@
+Lab 3
+
+- Varje tråd har en lista med noder 
+1. huvud-tråden:
+    - delar ut alla med excess till listor
+    - blockera på fas 1 barrier 
+
+2: alla trådar
+    - trådarna går igenom sin lista och registrerar vilka pushes alternativt relables som ska göras
+    - blockera på fas 1 barrier
+    - blockera på fas 2 barrier
+
+3: huvud-tråden
+    - utför operationerna i varje tråds operationskö
+    - om s->e == t->e då g->klar
+    - blockera på fas 2 barrier
+
+4: alla trådar
+    - om g->klar då break 
+    - annars steg 2
+
+
 Lab 2
 Maila Jonas
 Redovisat för David Engström
