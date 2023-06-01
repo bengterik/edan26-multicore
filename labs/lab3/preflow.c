@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -108,16 +108,17 @@ typedef struct {
 	edge_t* e;
 	int push; // 0 for relabel 1 for push
 	int flow;
-} op;
+} op_t;
 
 typedef struct {
 	graph_t* g;
 	node_t** excess;
 	int c;
 	int i;
-	op* ops;
+	op_t** ops;
 	int opc;
-} threadarg;
+	int opi;
+} threadarg_t;
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
  * the word 'array' in a general sense for any language. in C an array
@@ -446,6 +447,52 @@ static void relabel(graph_t* g, node_t* u)
 	enter_excess(g, u);
 }
 
+static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
+	int		d = flow;
+
+	pr("push from %d to %d: ", id(g, u), id(g, v));
+	pr("f = %d, c = %d, so ", e->f, e->c);
+	
+	if (u == e->u) {
+		e->f += d;
+	} else {
+		e->f -= d;
+	}
+
+	pr("pushing %d\n", d);
+
+	u->e -= d;
+	v->e += d;
+
+	/* the following are always true. */
+
+	if (u != g->s && v != g->s) {
+		assert(d >= 0);
+		assert(u->e >= 0);
+		assert(abs(e->f) <= e->c);
+	}
+
+	if (u->e > 0) {
+			
+
+		/* still some remaining so let u push more. */
+
+		enter_excess(g, u);
+	}
+
+	if (v->e == d) {
+
+		/* since v has d excess now it had zero before and
+		 * can now push.
+		 *
+		 */
+
+		enter_excess(g, v);
+	}
+	
+}
+
+
 static node_t* other(node_t* u, edge_t* e)
 {
 	if (u == e->u)
@@ -454,18 +501,17 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-
-
 static void *work(void *arg) {
 	node_t*		u; // selected node
 	list_t*		p; // adj list for node u
+	int		d;	/* remaining capacity of the edge. */
 
 	node_t*		v; // currently pushing to
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
 	int nodes_worked_on = 0;
 
-    threadarg* args = arg;
+    threadarg_t* args = arg;
 	graph_t* g = args->g;
 
 	while (g->done != 1) {
@@ -494,27 +540,55 @@ static void *work(void *arg) {
 					v = NULL;
 			}
 
+			if (args->opi == args->opc) {
+				args->opc *= 2;
+				op_t** larger = realloc(args->ops, args->opc * sizeof args->ops[0]);
+				if (larger == NULL) {
+					error("no memory");
+				}
+				args->ops = larger;
+			}
+
+			op_t* op = args->ops[args->opi];
+			args->opi += 1;
+		
 			if (v != NULL) {
-				push(g, u, v, e);
+				// push op
+				op->push = 1;
+				op->u = u;
+				op->v = v;
+				op->e = e;
+
+				if (u == e->u) {
+					d = MIN(u->e, e->c - e->f);
+				} else {
+					d = MIN(u->e, e->c + e->f);
+				}
+
+				op->flow = d;
+				pr("push op created %d->%d with %d\n", id(g,u), id(g,v), d);
 			} else {
-				relabel(g, u);
+				// relabel op
+				op->push = 0;
+				op->u = u;
 			}
 
 			pthread_barrier_wait(&g->phase_one);
+			pr("phase one finished\n");
 			pthread_barrier_wait(&g->phase_two);
+			pr("phase two finished\n");
 		}
 	}
 
 	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
 }
 
-int distribute_work(graph_t *g, threadarg* thread_args) {
+int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	node_t*		u;
 
 	int cycle = 0;
 	while((u = leave_excess(g)) != NULL) {
-		pr("excess %d \n", u->e);
-		threadarg* t = &thread_args[cycle];
+		threadarg_t* t = &thread_args[cycle];
 		int c = t->c;
 		int i = t->i;
 
@@ -530,7 +604,7 @@ int distribute_work(graph_t *g, threadarg* thread_args) {
 
 		t->excess[i] = u;
 		t->i++;
-		pr("thread %d given one node\n", cycle);
+		pr("thread %d given node %d \n", cycle, id(g,u));
 		cycle = (cycle + 1) % NBR_THREADS;
 	}
 }
@@ -556,10 +630,10 @@ int parallell_preflow(graph_t *g) {
 	}
 
 	pthread_t thread[NBR_THREADS];
-	threadarg thread_args[NBR_THREADS];
+	threadarg_t thread_args[NBR_THREADS];
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		threadarg* t = &thread_args[i];
+		threadarg_t* t = &thread_args[i];
 		t->c = 16; // initial capacity
 		t->excess = malloc(t->c * sizeof t->excess[0]);
 		if (t->excess == NULL) {
@@ -567,7 +641,10 @@ int parallell_preflow(graph_t *g) {
 		}
 
 		t->i = 0;
-		t->g = g;	
+		t->g = g;
+		t->opc = 16; 
+		t->opi = 0;
+		t->ops = malloc(t->c * sizeof t->ops[0]);
 	}
 
 	distribute_work(g, thread_args);
@@ -580,6 +657,23 @@ int parallell_preflow(graph_t *g) {
 	int round = 0;
 	while(1) {
 		pthread_barrier_wait(&g->phase_one);
+
+		for (int j = 0; j < NBR_THREADS; j++) {
+			threadarg_t *t = &thread_args[j];
+			int opi = t->opi; 
+			pr("opi = %d\n", opi);
+			for (int c = 0; c < opi; c++) {
+				op_t* op = t->ops[c];
+				pr("c = %d\n", c);
+				if (op->push) {
+					push_op(g, op->u, op->v, op->e, op->flow);
+				} else {
+					relabel(g, op->u);
+				}
+			}
+			t->opi = 0;
+		}
+
 		if (g->excess == NULL) {
 			break;
 		} else {
