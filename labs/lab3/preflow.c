@@ -36,7 +36,7 @@
 #include <pthread.h>
 
 #define PRINT		0	/* enable/disable prints. */
-#define NBR_THREADS 4
+#define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -79,7 +79,6 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t mut;
 };
 
 struct edge_t {
@@ -97,7 +96,6 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
-	pthread_mutex_t mut;
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -318,12 +316,6 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	g->v = xcalloc(n, sizeof(node_t));
 	g->e = xcalloc(m, sizeof(edge_t));
 
-	pthread_mutex_init(&g->mut, NULL);
-
-	for(int i=0; i < n; i++){
-		pthread_mutex_init(&g->v[i].mut, NULL);
-	}
-
 	g->s = &g->v[0];
 	g->t = &g->v[n-1];
 	g->excess = NULL;	
@@ -350,12 +342,10 @@ static void enter_excess(graph_t* g, node_t* v)
 	 * it first is simplest.
 	 *
 	 */
-	pthread_mutex_lock(&g->mut);
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
-	pthread_mutex_unlock(&g->mut);
 }
 
 static node_t* leave_excess(graph_t* g)
@@ -367,14 +357,11 @@ static node_t* leave_excess(graph_t* g)
 	 *
 	 */
 
-	pthread_mutex_lock(&g->mut);
 	v = g->excess;
 
 	if (v != NULL)
 		g->excess = v->next;
 	
-	pthread_mutex_unlock(&g->mut);
-
 	return v;
 }
 
@@ -428,10 +415,7 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 static void relabel(graph_t* g, node_t* u)
 {
-	pthread_mutex_lock(&u->mut);
 	u->h += 1;
-
-	pthread_mutex_unlock(&u->mut);
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
 
@@ -457,48 +441,41 @@ static void *work(void *arg) {
 	int			b; // current flow dir
 	int nodes_worked_on = 0;
     struct graph_t *g = arg;
+	
+		while ((u = leave_excess(g)) != NULL) {
+			pr("selected u = %d with ", id(g, u));
+			pr("h = %d and e = %d\n", u->h, u->e);
+			nodes_worked_on++;
+			p = u->edge;
 
-	while ((u = leave_excess(g)) != NULL) {
-		pr("selected u = %d with ", id(g, u));
-		pr("h = %d and e = %d\n", u->h, u->e);
-		nodes_worked_on++;
-		p = u->edge;
+			while (p != NULL) {
+				e = p->edge; 
+				p = p->next;
 
-		while (p != NULL) {
-			e = p->edge; 
-			p = p->next;
+				if (u == e->u) { 
+					v = e->v;
+					b = 1; 
+				} else {
+					v = e->u;
+					b = -1;
+				}
 
-			if (u == e->u) { 
-				v = e->v;
-				b = 1; 
-			} else {
-				v = e->u;
-				b = -1;
+				if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
+					break;
+				else
+					v = NULL;
 			}
 
-			if (u < v) {
-				pthread_mutex_lock(&u->mut);
-				pthread_mutex_lock(&v->mut);
+			if (v != NULL) {
+				push(g, u, v, e);
 			} else {
-				pthread_mutex_lock(&v->mut);
-				pthread_mutex_lock(&u->mut);
+				relabel(g, u);
 			}
+		
+			// phase 1 barrier
+			// if g->done  
+		
 
-			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
-				break;
-			else
-				pthread_mutex_unlock(&u->mut);
-				pthread_mutex_unlock(&v->mut);
-				v = NULL;
-		}
-
-		if (v != NULL) {
-			push(g, u, v, e);
-			pthread_mutex_unlock(&u->mut);
-			pthread_mutex_unlock(&v->mut);
-		} else {
-			relabel(g, u);
-		}
 	}
 
 	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
@@ -547,7 +524,6 @@ static void free_graph(graph_t* g)
 	list_t*		q;
 
 	for (i = 0; i < g->n; i += 1) {
-		pthread_mutex_destroy(&g->v[i].mut);
 		p = g->v[i].edge;
 		while (p != NULL) {
 			q = p->next;
@@ -555,8 +531,6 @@ static void free_graph(graph_t* g)
 			p = q;
 		}
 	}
-
-	pthread_mutex_destroy(&g->mut);
 
 	free(g->v);
 	free(g->e);
