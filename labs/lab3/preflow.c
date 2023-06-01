@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -97,6 +97,9 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
+	pthread_barrier_t phase_one;
+	pthread_barrier_t phase_two;
+	int done;
 };
 
 typedef struct {
@@ -336,7 +339,10 @@ static graph_t* new_graph(FILE* in, int n, int m)
 
 	g->s = &g->v[0];
 	g->t = &g->v[n-1];
-	g->excess = NULL;	
+	g->excess = NULL;
+	pthread_barrier_init(&g->phase_one, NULL, NBR_THREADS+1);
+	pthread_barrier_init(&g->phase_two, NULL, NBR_THREADS+1); 
+	g->done = 0;
 
 	for (i = 0; i < m; i += 1) {
 		a = next_int();
@@ -462,49 +468,76 @@ static void *work(void *arg) {
     threadarg* args = arg;
 	graph_t* g = args->g;
 
-	for (int j = 0; j < args->i; j++) {
-		u = args->excess[j];
-		pr("selected u = %d with ", id(g, u));
-		pr("h = %d and e = %d\n", u->h, u->e);
-		nodes_worked_on++;
-		p = u->edge;
+	while (g->done != 1) {
+		for (int j = 0; j < args->i; j++) {
+			u = args->excess[j];
+			pr("selected u = %d with ", id(g, u));
+			pr("h = %d and e = %d\n", u->h, u->e);
+			nodes_worked_on++;
+			p = u->edge;
 
-		while (p != NULL) {
-			e = p->edge; 
-			p = p->next;
+			while (p != NULL) {
+				e = p->edge; 
+				p = p->next;
 
-			if (u == e->u) { 
-				v = e->v;
-				b = 1; 
-			} else {
-				v = e->u;
-				b = -1;
+				if (u == e->u) { 
+					v = e->v;
+					b = 1; 
+				} else {
+					v = e->u;
+					b = -1;
+				}
+
+				if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
+					break;
+				else
+					v = NULL;
 			}
 
-			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
-				break;
-			else
-				v = NULL;
-		}
+			if (v != NULL) {
+				push(g, u, v, e);
+			} else {
+				relabel(g, u);
+			}
 
-		if (v != NULL) {
-			push(g, u, v, e);
-		} else {
-			relabel(g, u);
+			pthread_barrier_wait(&g->phase_one);
+			pthread_barrier_wait(&g->phase_two);
 		}
-	
-		// phase 1 barrier
-		// if g->done  
-	
-
 	}
 
 	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
 }
 
+int distribute_work(graph_t *g, threadarg* thread_args) {
+	node_t*		u;
+
+	int cycle = 0;
+	while((u = leave_excess(g)) != NULL) {
+		pr("excess %d \n", u->e);
+		threadarg* t = &thread_args[cycle];
+		int c = t->c;
+		int i = t->i;
+
+		if (i == c) {
+			t->c *= 2;
+			node_t** larger = realloc(t->excess, t->c * sizeof t->excess[0]);
+			if (larger == NULL) {
+				error("no memory");
+			}
+
+			t->excess = larger;
+		}
+
+		t->excess[i] = u;
+		t->i++;
+		pr("thread %d given one node\n", cycle);
+		cycle = (cycle + 1) % NBR_THREADS;
+	}
+}
+
+
 int parallell_preflow(graph_t *g) {
 	node_t*		s;
-	node_t*		u;
 	node_t*		v;
 	edge_t*		e;
 	list_t*		p;
@@ -537,33 +570,26 @@ int parallell_preflow(graph_t *g) {
 		t->g = g;	
 	}
 
-	int cycle = 0;
-	while((u = leave_excess(g)) != NULL) {
-		pr("excess %d \n", u->e);
-		threadarg* t = &thread_args[cycle];
-		int c = t->c;
-		int i = t->i;
-
-		if (i == c) {
-			t->c *= 2;
-			node_t** larger = realloc(t->excess, t->c * sizeof t->excess[0]);
-			if (larger == NULL) {
-				error("no memory");
-			}
-
-			t->excess = larger;
-		}
-
-		t->excess[i] = u;
-		t->i++;
-		pr("thread %d given one node\n", cycle);
-		cycle = (cycle + 1) % NBR_THREADS;
-	}
+	distribute_work(g, thread_args);
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		if (pthread_create(&thread[i], NULL, (void*) work, &thread_args[i]) != 0)
 			error("pthread_create failed");
 	}
+
+	int round = 0;
+	while(1) {
+		pthread_barrier_wait(&g->phase_one);
+		if (g->excess == NULL) {
+			break;
+		} else {
+			distribute_work(g, thread_args);
+			pthread_barrier_wait(&g->phase_two);
+		}
+	}
+	g->done = 1;
+	pthread_barrier_wait(&g->phase_two);
+
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		if (pthread_join(thread[i], NULL) != 0)
@@ -587,6 +613,8 @@ static void free_graph(graph_t* g)
 			p = q;
 		}
 	}
+	pthread_barrier_destroy(&g->phase_one);
+	pthread_barrier_destroy(&g->phase_two); 
 
 	free(g->v);
 	free(g->e);
