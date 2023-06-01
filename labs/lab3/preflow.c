@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -450,8 +450,8 @@ static void relabel(graph_t* g, node_t* u)
 static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
 	int		d = flow;
 
-	pr("push from %d to %d: ", id(g, u), id(g, v));
-	pr("f = %d, c = %d, so ", e->f, e->c);
+	u->e -= d;
+	v->e += d;
 	
 	if (u == e->u) {
 		e->f += d;
@@ -459,11 +459,10 @@ static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
 		e->f -= d;
 	}
 
+	pr("push from %d to %d: ", id(g, u), id(g, v));
+	pr("f = %d, c = %d, so ", e->f, e->c);
+
 	pr("pushing %d\n", d);
-
-	u->e -= d;
-	v->e += d;
-
 	/* the following are always true. */
 
 	if (u != g->s && v != g->s) {
@@ -506,7 +505,7 @@ static void *work(void *arg) {
 	list_t*		p; // adj list for node u
 	int		d;	/* remaining capacity of the edge. */
 
-	node_t*		v; // currently pushing to
+	node_t*		v = NULL; // currently pushing to
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
 	int nodes_worked_on = 0;
@@ -520,6 +519,7 @@ static void *work(void *arg) {
 			pr("selected u = %d with ", id(g, u));
 			pr("h = %d and e = %d\n", u->h, u->e);
 			nodes_worked_on++;
+			v = NULL;
 			p = u->edge;
 
 			while (p != NULL) {
@@ -571,10 +571,14 @@ static void *work(void *arg) {
 				// relabel op
 				op->push = 0;
 				op->u = u;
+				pr("relabel op created for %d\n", id(g,u));
 			}
-
+			
+			pr("waiting on phase one barrier\n");
 			pthread_barrier_wait(&g->phase_one);
+			pr("waiting on phase two barrier\n");
 			pthread_barrier_wait(&g->phase_two);
+			// pr("3\n");
 		}
 	}
 
@@ -583,7 +587,7 @@ static void *work(void *arg) {
 
 int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	node_t*		u;
-
+	pr("distributing work\n");
 	int cycle = 0;
 	while((u = leave_excess(g)) != NULL) {
 		threadarg_t* t = &thread_args[cycle];
@@ -652,10 +656,10 @@ int parallell_preflow(graph_t *g) {
 			error("pthread_create failed");
 	}
 
+	pthread_barrier_wait(&g->phase_one);
+
 	int round = 0;
 	while(1) {
-		pthread_barrier_wait(&g->phase_one);
-
 		for (int j = 0; j < NBR_THREADS; j++) {
 			threadarg_t *t = &thread_args[j];
 			int opi = t->opi; 
@@ -670,15 +674,19 @@ int parallell_preflow(graph_t *g) {
 			}
 			t->opi = 0;
 		}
-
+		pthread_barrier_wait(&g->phase_two);
+		
+		pthread_barrier_wait(&g->phase_one);
+		
 		if (g->excess == NULL) {
 			break;
-		} else {
-			distribute_work(g, thread_args);
-			pthread_barrier_wait(&g->phase_two);
 		}
+
+		distribute_work(g, thread_args);
+	
 	}
 	g->done = 1;
+	pr("done\n");
 	pthread_barrier_wait(&g->phase_two);
 
 
