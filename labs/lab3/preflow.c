@@ -640,7 +640,7 @@ int parallell_preflow(graph_t *g) {
 		t->g = g;
 		t->opc = 16; 
 		t->opi = 0;
-		t->ops = malloc(t->c * sizeof t->ops[0]);
+		t->ops = malloc(t->opc * sizeof t->ops[0]);
 	}
 
 	distribute_work(g, thread_args);
@@ -652,12 +652,11 @@ int parallell_preflow(graph_t *g) {
 
 	pthread_barrier_wait(&g->phase_one);
 
-	int round = 0;
 	while(1) {
+		
 		for (int j = 0; j < NBR_THREADS; j++) {
 			threadarg_t *t = &thread_args[j];
 			int opi = t->opi; 
-
 			for (int c = 0; c < opi; c++) {
 				op_t* op = t->ops[c];
 				if (op->push) {
@@ -668,17 +667,18 @@ int parallell_preflow(graph_t *g) {
 			}
 			t->opi = 0;
 		}
-		pthread_barrier_wait(&g->phase_two);
-		
-		pthread_barrier_wait(&g->phase_one);
 		
 		if (g->excess == NULL) {
 			break;
 		}
-
+		
 		distribute_work(g, thread_args);
-	
+
+		pthread_barrier_wait(&g->phase_two);
+		
+		pthread_barrier_wait(&g->phase_one);
 	}
+
 	g->done = 1;
 	pr("done\n");
 	pthread_barrier_wait(&g->phase_two);
