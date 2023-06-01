@@ -695,3 +695,27 @@ Exception in thread "pool-3-thread-2" java.lang.InterruptedException
 2022.11.28 11:25:32 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala
 2022.11.28 11:25:36 INFO  no build target found for /home/alexander/git/edan26-multicore/labs/lab1/preflow.scala. Using presentation compiler with project's scala-library version: 3.2.0
 2022.11.28 11:25:39 INFO  time: code lens generation in 5.91s
+2023.04.02 17:46:08 INFO  Started: Metals version 0.11.11 in workspace '/home/alexander/git/edan26-multicore' for client Visual Studio Code 1.76.2.
+SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+SLF4J: Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+SLF4J: Ignoring binding found at [jar:file:/home/alexander/.cache/coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe-slf4j_2.13/3.11.0/scribe-slf4j_2.13-3.11.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+2023.04.02 17:46:12 INFO  time: initialize in 3.99s
+2023.04.02 17:46:15 WARN  Build server is not auto-connectable.
+2023.04.02 17:46:15 WARN  no build tool detected in workspace '/home/alexander/git/edan26-multicore'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2023.04.02 17:46:15 WARN  no build target for: /home/alexander/git/edan26-multicore/labs/lab2/java/sequential.java
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 8
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 9
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 10
+Apr 02, 2023 5:46:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 11
+2023.04.02 17:46:16 INFO  time: code lens generation in 1.55s

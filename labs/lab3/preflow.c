@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -519,7 +519,6 @@ static void *work(void *arg) {
 			pr("selected u = %d with ", id(g, u));
 			pr("h = %d and e = %d\n", u->h, u->e);
 			nodes_worked_on++;
-			v = NULL;
 			p = u->edge;
 
 			while (p != NULL) {
@@ -551,7 +550,6 @@ static void *work(void *arg) {
 
 			op_t* op = args->ops[args->opi];
 			args->opi += 1;
-		
 			if (v != NULL) {
 				// push op
 				op->push = 1;
@@ -574,9 +572,7 @@ static void *work(void *arg) {
 				pr("relabel op created for %d\n", id(g,u));
 			}
 			
-			pr("waiting on phase one barrier\n");
 			pthread_barrier_wait(&g->phase_one);
-			pr("waiting on phase two barrier\n");
 			pthread_barrier_wait(&g->phase_two);
 			// pr("3\n");
 		}
@@ -587,7 +583,6 @@ static void *work(void *arg) {
 
 int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	node_t*		u;
-	pr("distributing work\n");
 	int cycle = 0;
 	while((u = leave_excess(g)) != NULL) {
 		threadarg_t* t = &thread_args[cycle];
@@ -606,7 +601,6 @@ int distribute_work(graph_t *g, threadarg_t* thread_args) {
 
 		t->excess[i] = u;
 		t->i++;
-		pr("thread %d given node %d \n", cycle, id(g,u));
 		cycle = (cycle + 1) % NBR_THREADS;
 	}
 }
