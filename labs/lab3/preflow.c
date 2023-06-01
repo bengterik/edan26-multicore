@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include "pthread_barrier.h"
 
 #define PRINT		0	/* enable/disable prints. */
 #define NBR_THREADS 1
@@ -97,6 +98,22 @@ struct graph_t {
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
 };
+
+typedef struct {
+	node_t* u;
+	node_t* v;
+	edge_t* e;
+	int push; // 0 for relabel 1 for push
+	int flow;
+} op;
+
+typedef struct {
+	graph_t* g;
+	node_t* excess;
+	int c;
+	op* ops;
+	int opc;
+} threadarg;
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
  * the word 'array' in a general sense for any language. in C an array
@@ -440,41 +457,42 @@ static void *work(void *arg) {
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
 	int nodes_worked_on = 0;
-    struct graph_t *g = arg;
-	
-		while ((u = leave_excess(g)) != NULL) {
-			pr("selected u = %d with ", id(g, u));
-			pr("h = %d and e = %d\n", u->h, u->e);
-			nodes_worked_on++;
-			p = u->edge;
+    threadarg* args = arg;
+	graph_t* g = args->g;
 
-			while (p != NULL) {
-				e = p->edge; 
-				p = p->next;
+	while ((u = leave_excess(g)) != NULL) {
+		pr("selected u = %d with ", id(g, u));
+		pr("h = %d and e = %d\n", u->h, u->e);
+		nodes_worked_on++;
+		p = u->edge;
 
-				if (u == e->u) { 
-					v = e->v;
-					b = 1; 
-				} else {
-					v = e->u;
-					b = -1;
-				}
+		while (p != NULL) {
+			e = p->edge; 
+			p = p->next;
 
-				if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
-					break;
-				else
-					v = NULL;
-			}
-
-			if (v != NULL) {
-				push(g, u, v, e);
+			if (u == e->u) { 
+				v = e->v;
+				b = 1; 
 			} else {
-				relabel(g, u);
+				v = e->u;
+				b = -1;
 			}
-		
-			// phase 1 barrier
-			// if g->done  
-		
+
+			if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
+				break;
+			else
+				v = NULL;
+		}
+
+		if (v != NULL) {
+			push(g, u, v, e);
+		} else {
+			relabel(g, u);
+		}
+	
+		// phase 1 barrier
+		// if g->done  
+	
 
 	}
 
@@ -502,10 +520,16 @@ int parallell_preflow(graph_t *g) {
 	}
 
 	pthread_t thread[NBR_THREADS];
-		
+	threadarg thread_args[NBR_THREADS];
+
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
-		
-		if (pthread_create(&thread[i], NULL, (void*) work, g) != 0)
+		threadarg* t = &thread_args[i];
+		t->c = 0;
+		t->g = g;	
+	}
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		if (pthread_create(&thread[i], NULL, (void*) work, &thread_args[i]) != 0)
 			error("pthread_create failed");
 	}
 
