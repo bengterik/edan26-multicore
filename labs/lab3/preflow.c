@@ -574,9 +574,7 @@ static void *work(void *arg) {
 			}
 
 			pthread_barrier_wait(&g->phase_one);
-			pr("phase one finished\n");
 			pthread_barrier_wait(&g->phase_two);
-			pr("phase two finished\n");
 		}
 	}
 
@@ -661,10 +659,9 @@ int parallell_preflow(graph_t *g) {
 		for (int j = 0; j < NBR_THREADS; j++) {
 			threadarg_t *t = &thread_args[j];
 			int opi = t->opi; 
-			pr("opi = %d\n", opi);
+
 			for (int c = 0; c < opi; c++) {
 				op_t* op = t->ops[c];
-				pr("c = %d\n", c);
 				if (op->push) {
 					push_op(g, op->u, op->v, op->e, op->flow);
 				} else {
