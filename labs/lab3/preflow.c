@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -109,8 +109,9 @@ typedef struct {
 
 typedef struct {
 	graph_t* g;
-	node_t* excess;
+	node_t** excess;
 	int c;
+	int i;
 	op* ops;
 	int opc;
 } threadarg;
@@ -457,10 +458,12 @@ static void *work(void *arg) {
 	edge_t*		e; // edge from u to v
 	int			b; // current flow dir
 	int nodes_worked_on = 0;
+
     threadarg* args = arg;
 	graph_t* g = args->g;
 
-	while ((u = leave_excess(g)) != NULL) {
+	for (int j = 0; j < args->i; j++) {
+		u = args->excess[j];
 		pr("selected u = %d with ", id(g, u));
 		pr("h = %d and e = %d\n", u->h, u->e);
 		nodes_worked_on++;
@@ -524,8 +527,37 @@ int parallell_preflow(graph_t *g) {
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		threadarg* t = &thread_args[i];
-		t->c = 0;
+		t->c = 16; // initial capacity
+		t->excess = malloc(t->c * sizeof t->excess[0]);
+		if (t->excess == NULL) {
+				error("no memory");
+		}
+
+		t->i = 0;
 		t->g = g;	
+	}
+
+	int cycle = 0;
+	while((u = leave_excess(g)) != NULL) {
+		pr("excess %d \n", u->e);
+		threadarg* t = &thread_args[cycle];
+		int c = t->c;
+		int i = t->i;
+
+		if (i == c) {
+			t->c *= 2;
+			node_t** larger = realloc(t->excess, t->c * sizeof t->excess[0]);
+			if (larger == NULL) {
+				error("no memory");
+			}
+
+			t->excess = larger;
+		}
+
+		t->excess[i] = u;
+		t->i++;
+		pr("thread %d given one node\n", cycle);
+		cycle = (cycle + 1) % NBR_THREADS;
 	}
 
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
