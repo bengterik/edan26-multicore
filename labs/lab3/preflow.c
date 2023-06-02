@@ -571,11 +571,9 @@ static void *work(void *arg) {
 				op->u = u;
 				pr("relabel op created for %d\n", id(g,u));
 			}
-			
-			pthread_barrier_wait(&g->phase_one);
-			pthread_barrier_wait(&g->phase_two);
-			// pr("3\n");
 		}
+		pthread_barrier_wait(&g->phase_one);
+		pthread_barrier_wait(&g->phase_two);
 	}
 
 	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
