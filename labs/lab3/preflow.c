@@ -547,9 +547,11 @@ static void *work(void *arg) {
 				}
 				args->ops = larger;
 			}
+			
 
-			op_t* op = args->ops[args->opi];
-			args->opi += 1;
+			op_t* op = malloc(sizeof(op_t));
+			args->ops[args->opi] = op;
+			
 			if (v != NULL) {
 				// push op
 				op->push = 1;
@@ -566,11 +568,13 @@ static void *work(void *arg) {
 				op->flow = d;
 				pr("push op created %d->%d with %d\n", id(g,u), id(g,v), d);
 			} else {
+
 				// relabel op
 				op->push = 0;
 				op->u = u;
-				pr("relabel op created for %d\n", id(g,u));
+				pr("relabel op created for %d with h %d\n", id(g,u), u->h);
 			}
+			args->opi += 1;
 		}
 		pthread_barrier_wait(&g->phase_one);
 		pthread_barrier_wait(&g->phase_two);
@@ -589,14 +593,13 @@ int distribute_work(graph_t *g, threadarg_t* thread_args) {
 
 		if (i == c) {
 			t->c *= 2;
-			node_t** larger = realloc(t->excess, t->c * sizeof t->excess[0]);
+			node_t** larger = realloc(t->excess, t->c * sizeof(node_t*));
 			if (larger == NULL) {
 				error("no memory");
 			}
 
 			t->excess = larger;
 		}
-
 		t->excess[i] = u;
 		t->i++;
 		cycle = (cycle + 1) % NBR_THREADS;
@@ -629,7 +632,8 @@ int parallell_preflow(graph_t *g) {
 	for (int i = 0; i < NBR_THREADS; i += 1) { 
 		threadarg_t* t = &thread_args[i];
 		t->c = 16; // initial capacity
-		t->excess = malloc(t->c * sizeof t->excess[0]);
+		t->excess = malloc(t->c * sizeof(node_t*));
+
 		if (t->excess == NULL) {
 				error("no memory");
 		}
@@ -651,12 +655,22 @@ int parallell_preflow(graph_t *g) {
 	pthread_barrier_wait(&g->phase_one);
 
 	while(1) {
-		
+		for (int j = 0; j < NBR_THREADS; j++) {
+			threadarg_t *t = &thread_args[j];
+			int opi = t->opi; 
+			// pr("operands:\n");
+			// for (int c = 0; c < opi; c++) {
+			// 	op_t* op = t->ops[c];
+			// 	pr("\tu = %d, push = %d\n", id(g,op->u), op->push);
+			// }
+			// pr("end operands\n");
+		}
 		for (int j = 0; j < NBR_THREADS; j++) {
 			threadarg_t *t = &thread_args[j];
 			int opi = t->opi; 
 			for (int c = 0; c < opi; c++) {
 				op_t* op = t->ops[c];
+
 				if (op->push) {
 					push_op(g, op->u, op->v, op->e, op->flow);
 				} else {
@@ -669,9 +683,9 @@ int parallell_preflow(graph_t *g) {
 		if (g->excess == NULL) {
 			break;
 		}
-		
 		distribute_work(g, thread_args);
 
+		pr("distributing again\n");
 		pthread_barrier_wait(&g->phase_two);
 		
 		pthread_barrier_wait(&g->phase_one);
