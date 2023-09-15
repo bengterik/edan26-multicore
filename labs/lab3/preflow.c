@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include "pthread_barrier.h"
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 #define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -513,7 +513,9 @@ static void *work(void *arg) {
     threadarg_t* args = arg;
 	graph_t* g = args->g;
 
+
 	while (g->done != 1) {
+		printf("i = %d\n", args->i);
 		for (int j = 0; j < args->i; j++) {
 			u = args->excess[j];
 			pr("selected u = %d with ", id(g, u));
@@ -590,7 +592,7 @@ int distribute_work(graph_t *g, threadarg_t* thread_args) {
 		threadarg_t* t = &thread_args[cycle];
 		int c = t->c;
 		int i = t->i;
-
+		printf("cycle = %d\n", cycle);
 		if (i == c) {
 			t->c *= 2;
 			node_t** larger = realloc(t->excess, t->c * sizeof(node_t*));
@@ -658,16 +660,6 @@ int parallell_preflow(graph_t *g) {
 		for (int j = 0; j < NBR_THREADS; j++) {
 			threadarg_t *t = &thread_args[j];
 			int opi = t->opi; 
-			// pr("operands:\n");
-			// for (int c = 0; c < opi; c++) {
-			// 	op_t* op = t->ops[c];
-			// 	pr("\tu = %d, push = %d\n", id(g,op->u), op->push);
-			// }
-			// pr("end operands\n");
-		}
-		for (int j = 0; j < NBR_THREADS; j++) {
-			threadarg_t *t = &thread_args[j];
-			int opi = t->opi; 
 			for (int c = 0; c < opi; c++) {
 				op_t* op = t->ops[c];
 
@@ -678,6 +670,7 @@ int parallell_preflow(graph_t *g) {
 				}
 			}
 			t->opi = 0;
+			t->i = 0;
 		}
 		
 		if (g->excess == NULL) {
