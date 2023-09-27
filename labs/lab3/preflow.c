@@ -37,7 +37,7 @@
 #include "pthread_barrier.h"
 
 #define PRINT		0	/* enable/disable prints. */
-#define NBR_THREADS 1
+#define NBR_THREADS 4
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -515,7 +515,7 @@ static void *work(void *arg) {
 
 
 	while (g->done != 1) {
-		printf("i = %d\n", args->i);
+		pr("i = %d\n", args->i);
 		for (int j = 0; j < args->i; j++) {
 			u = args->excess[j];
 			pr("selected u = %d with ", id(g, u));
@@ -550,7 +550,6 @@ static void *work(void *arg) {
 				args->ops = larger;
 			}
 			
-
 			op_t* op = malloc(sizeof(op_t));
 			args->ops[args->opi] = op;
 			
@@ -588,11 +587,12 @@ static void *work(void *arg) {
 int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	node_t*		u;
 	int cycle = 0;
+	
 	while((u = leave_excess(g)) != NULL) {
 		threadarg_t* t = &thread_args[cycle];
 		int c = t->c;
 		int i = t->i;
-		printf("cycle = %d\n", cycle);
+		pr("cycle = %d\n", cycle);
 		if (i == c) {
 			t->c *= 2;
 			node_t** larger = realloc(t->excess, t->c * sizeof(node_t*));
