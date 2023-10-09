@@ -1,0 +1,47 @@
+    183c:	02 00 4c 3c 	addis   r2,r12,2
+    1840:	c4 66 42 38 	addi    r2,r2,26308
+    1844:	a6 02 08 7c 	mflr    r0
+    1848:	10 00 01 f8 	std     r0,16(r1)
+    184c:	f8 ff e1 fb 	std     r31,-8(r1)
+    1850:	b1 ff 21 f8 	stdu    r1,-80(r1)
+    1854:	78 0b 3f 7c 	mr      r31,r1
+    1858:	28 00 7f f8 	std     r3,40(r31)
+    185c:	20 00 9f f8 	std     r4,32(r31)
+    1860:	f0 8f 2d e9 	ld      r9,-28688(r13)
+    1864:	38 00 3f f9 	std     r9,56(r31)
+    1868:	00 00 20 39 	li      r9,0
+    186c:	00 00 00 60 	nop
+    1870:	20 81 22 39 	addi    r9,r2,-32480
+    1874:	00 00 29 81 	lwz     r9,0(r9)
+    1878:	b4 07 29 7d 	extsw   r9,r9
+    187c:	34 12 29 71 	andi.   r9,r9,4660
+    1880:	b4 07 2a 7d 	extsw   r10,r9
+    1884:	20 81 22 39 	addi    r9,r2,-32480
+    1888:	00 00 49 91 	stw     r10,0(r9)
+    188c:	01 00 20 39 	li      r9,1
+    1890:	30 00 3f 91 	stw     r9,48(r31)
+    1894:	20 00 3f e9 	ld      r9,32(r31)
+    1898:	32 00 5f e9 	lwa     r10,48(r31)
+    189c:	20 00 48 79 	clrldi  r8,r10,32
+    18a0:	ac 04 00 7c 	hwsync
+    18a4:	28 48 40 7d 	lwarx   r10,0,r9
+    18a8:	14 42 4a 7d 	add     r10,r10,r8
+    18ac:	2d 49 40 7d 	stwcx.  r10,0,r9
+    18b0:	00 00 80 4f 	mcrf    cr7,cr0
+    18b4:	f0 ff 9e 40 	bne     cr7,18a4 <relabel+0x68>
+    18b8:	2c 01 00 4c 	isync
+    18bc:	20 00 49 79 	clrldi  r9,r10,32
+    18c0:	b4 07 29 7d 	extsw   r9,r9
+    18c4:	34 00 3f 91 	stw     r9,52(r31)
+    18c8:	00 00 00 60 	nop
+    18cc:	20 81 22 39 	addi    r9,r2,-32480
+    18d0:	00 00 29 81 	lwz     r9,0(r9)
+    18d4:	b4 07 29 7d 	extsw   r9,r9
+    18d8:	78 56 29 71 	andi.   r9,r9,22136
+    18dc:	b4 07 2a 7d 	extsw   r10,r9
+    18e0:	20 81 22 39 	addi    r9,r2,-32480
+    18e4:	00 00 49 91 	stw     r10,0(r9)
+    18e8:	20 00 9f e8 	ld      r4,32(r31)
+    18ec:	28 00 7f e8 	ld      r3,40(r31)
+    18f0:	fd f8 ff 4b 	bl      11ec <enter_excess>
+
