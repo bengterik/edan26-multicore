@@ -33,9 +33,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdatomic.h>
+#include <pthread.h>
+#include "pthread_barrier.h"
 
 #define PRINT		0	/* enable/disable prints. */
+#define NBR_THREADS 4
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -66,6 +68,7 @@ typedef struct graph_t	graph_t;
 typedef struct node_t	node_t;
 typedef struct edge_t	edge_t;
 typedef struct list_t	list_t;
+typedef struct work_list_t	work_list_t;
 
 struct list_t {
 	edge_t*		edge;
@@ -94,7 +97,28 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
+	pthread_barrier_t phase_one;
+	pthread_barrier_t phase_two;
+	int done;
 };
+
+typedef struct {
+	node_t* u;
+	node_t* v;
+	edge_t* e;
+	int push; // 0 for relabel 1 for push
+	int flow;
+} op_t;
+
+typedef struct {
+	graph_t* g;
+	node_t** excess;
+	int c;
+	int i;
+	op_t** ops;
+	int opc;
+	int opi;
+} threadarg_t;
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
  * the word 'array' in a general sense for any language. in C an array
@@ -317,6 +341,9 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	g->s = &g->v[0];
 	g->t = &g->v[n-1];
 	g->excess = NULL;
+	pthread_barrier_init(&g->phase_one, NULL, NBR_THREADS+1);
+	pthread_barrier_init(&g->phase_two, NULL, NBR_THREADS+1); 
+	g->done = 0;
 
 	for (i = 0; i < m; i += 1) {
 		a = next_int();
@@ -340,7 +367,6 @@ static void enter_excess(graph_t* g, node_t* v)
 	 * it first is simplest.
 	 *
 	 */
-
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
@@ -360,7 +386,7 @@ static node_t* leave_excess(graph_t* g)
 
 	if (v != NULL)
 		g->excess = v->next;
-
+	
 	return v;
 }
 
@@ -386,11 +412,14 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 	/* the following are always true. */
 
-	assert(d >= 0);
-	assert(u->e >= 0);
-	assert(abs(e->f) <= e->c);
+	if (u != g->s && v != g->s) {
+		assert(d >= 0);
+		assert(u->e >= 0);
+		assert(abs(e->f) <= e->c);
+	}
 
 	if (u->e > 0) {
+			
 
 		/* still some remaining so let u push more. */
 
@@ -406,20 +435,62 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 		enter_excess(g, v);
 	}
+	
 }
-
-volatile int hello;
 
 static void relabel(graph_t* g, node_t* u)
 {
-	hello &= 0x1234;
 	u->h += 1;
-	hello &= 0x5678;
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
 
 	enter_excess(g, u);
 }
+
+static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
+	int		d = flow;
+
+	u->e -= d;
+	v->e += d;
+	
+	if (u == e->u) {
+		e->f += d;
+	} else {
+		e->f -= d;
+	}
+
+	pr("push from %d to %d: ", id(g, u), id(g, v));
+	pr("f = %d, c = %d, so ", e->f, e->c);
+
+	pr("pushing %d\n", d);
+	/* the following are always true. */
+
+	if (u != g->s && v != g->s) {
+		assert(d >= 0);
+		assert(u->e >= 0);
+		assert(abs(e->f) <= e->c);
+	}
+
+	if (u->e > 0) {
+			
+
+		/* still some remaining so let u push more. */
+
+		enter_excess(g, u);
+	}
+
+	if (v->e == d) {
+
+		/* since v has d excess now it had zero before and
+		 * can now push.
+		 *
+		 */
+
+		enter_excess(g, v);
+	}
+	
+}
+
 
 static node_t* other(node_t* u, edge_t* e)
 {
@@ -428,76 +499,199 @@ static node_t* other(node_t* u, edge_t* e)
 	else
 		return e->u;
 }
-	
-int preflow(graph_t* g)
-{
-	node_t*		s;
+
+static void *work(void *arg) {
+	node_t*		u; // selected node
+	list_t*		p; // adj list for node u
+	int		d;	/* remaining capacity of the edge. */
+
+	node_t*		v = NULL; // currently pushing to
+	edge_t*		e; // edge from u to v
+	int			b; // current flow dir
+	int nodes_worked_on = 0;
+
+    threadarg_t* args = arg;
+	graph_t* g = args->g;
+
+
+	while (g->done != 1) {
+		pr("i = %d\n", args->i);
+		for (int j = 0; j < args->i; j++) {
+			u = args->excess[j];
+			pr("selected u = %d with ", id(g, u));
+			pr("h = %d and e = %d\n", u->h, u->e);
+			nodes_worked_on++;
+			p = u->edge;
+
+			while (p != NULL) {
+				e = p->edge; 
+				p = p->next;
+
+				if (u == e->u) { 
+					v = e->v;
+					b = 1; 
+				} else {
+					v = e->u;
+					b = -1;
+				}
+
+				if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
+					break;
+				else
+					v = NULL;
+			}
+
+			if (args->opi == args->opc) {
+				args->opc *= 2;
+				op_t** larger = realloc(args->ops, args->opc * sizeof args->ops[0]);
+				if (larger == NULL) {
+					error("no memory");
+				}
+				args->ops = larger;
+			}
+			
+			op_t* op = malloc(sizeof(op_t));
+			args->ops[args->opi] = op;
+			
+			if (v != NULL) {
+				// push op
+				op->push = 1;
+				op->u = u;
+				op->v = v;
+				op->e = e;
+
+				if (u == e->u) {
+					d = MIN(u->e, e->c - e->f);
+				} else {
+					d = MIN(u->e, e->c + e->f);
+				}
+
+				op->flow = d;
+				pr("push op created %d->%d with %d\n", id(g,u), id(g,v), d);
+			} else {
+
+				// relabel op
+				op->push = 0;
+				op->u = u;
+				pr("relabel op created for %d with h %d\n", id(g,u), u->h);
+			}
+			args->opi += 1;
+		}
+		pthread_barrier_wait(&g->phase_one);
+		pthread_barrier_wait(&g->phase_two);
+	}
+
+	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
+}
+
+int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	node_t*		u;
+	int cycle = 0;
+	
+	while((u = leave_excess(g)) != NULL) {
+		threadarg_t* t = &thread_args[cycle];
+		int c = t->c;
+		int i = t->i;
+		pr("cycle = %d\n", cycle);
+		if (i == c) {
+			t->c *= 2;
+			node_t** larger = realloc(t->excess, t->c * sizeof(node_t*));
+			if (larger == NULL) {
+				error("no memory");
+			}
+
+			t->excess = larger;
+		}
+		t->excess[i] = u;
+		t->i++;
+		cycle = (cycle + 1) % NBR_THREADS;
+	}
+}
+
+
+int parallell_preflow(graph_t *g) {
+	node_t*		s;
 	node_t*		v;
 	edge_t*		e;
 	list_t*		p;
 	int		b;
-
-	s = g->s;
-	s->h = g->n;
+	
+	s = g->s; // S is source
+	s->h = g->n; // H of source is n
 
 	p = s->edge;
-
-	/* start by pushing as much as possible (limited by
-	 * the edge capacity) from the source to its neighbors.
-	 *
-	 */
-
 	while (p != NULL) {
 		e = p->edge;
 		p = p->next;
-
 		s->e += e->c;
-		push(g, s, other(s, e), e);
+		b += e->c;
+		push(g, s, other(s, e), e); 
 	}
-	
-	/* then loop until only s and/or t have excess preflow. */
 
-	while ((u = leave_excess(g)) != NULL) {
+	pthread_t thread[NBR_THREADS];
+	threadarg_t thread_args[NBR_THREADS];
 
-		/* u is any node with excess preflow. */
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		threadarg_t* t = &thread_args[i];
+		t->c = 16; // initial capacity
+		t->excess = malloc(t->c * sizeof(node_t*));
 
-		pr("selected u = %d with ", id(g, u));
-		pr("h = %d and e = %d\n", u->h, u->e);
-
-		/* if we can push we must push and only if we could
-		 * not push anything, we are allowed to relabel.
-		 *
-		 * we can push to multiple nodes if we wish but
-		 * here we just push once for simplicity.
-		 *
-		 */
-
-		v = NULL;
-		p = u->edge;
-
-		while (p != NULL) {
-			e = p->edge;
-			p = p->next;
-
-			if (u == e->u) {
-				v = e->v;
-				b = 1;
-			} else {
-				v = e->u;
-				b = -1;
-			}
-
-			if (u->h > v->h && b * e->f < e->c)
-				break;
-			else
-				v = NULL;
+		if (t->excess == NULL) {
+				error("no memory");
 		}
 
-		if (v != NULL)
-			push(g, u, v, e);
-		else
-			relabel(g, u);
+		t->i = 0;
+		t->g = g;
+		t->opc = 16; 
+		t->opi = 0;
+		t->ops = malloc(t->opc * sizeof t->ops[0]);
+	}
+
+	distribute_work(g, thread_args);
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		if (pthread_create(&thread[i], NULL, (void*) work, &thread_args[i]) != 0)
+			error("pthread_create failed");
+	}
+
+	pthread_barrier_wait(&g->phase_one);
+
+	while(1) {
+		for (int j = 0; j < NBR_THREADS; j++) {
+			threadarg_t *t = &thread_args[j];
+			int opi = t->opi; 
+			for (int c = 0; c < opi; c++) {
+				op_t* op = t->ops[c];
+
+				if (op->push) {
+					push_op(g, op->u, op->v, op->e, op->flow);
+				} else {
+					relabel(g, op->u);
+				}
+			}
+			t->opi = 0;
+			t->i = 0;
+		}
+		
+		if (g->excess == NULL) {
+			break;
+		}
+		distribute_work(g, thread_args);
+
+		pr("distributing again\n");
+		pthread_barrier_wait(&g->phase_two);
+		
+		pthread_barrier_wait(&g->phase_one);
+	}
+
+	g->done = 1;
+	pr("done\n");
+	pthread_barrier_wait(&g->phase_two);
+
+
+	for (int i = 0; i < NBR_THREADS; i += 1) { 
+		if (pthread_join(thread[i], NULL) != 0)
+			error("pthread_join failed");
 	}
 
 	return g->t->e;
@@ -505,7 +699,7 @@ int preflow(graph_t* g)
 
 static void free_graph(graph_t* g)
 {
-	int		i;
+	int			i;
 	list_t*		p;
 	list_t*		q;
 
@@ -517,6 +711,9 @@ static void free_graph(graph_t* g)
 			p = q;
 		}
 	}
+	pthread_barrier_destroy(&g->phase_one);
+	pthread_barrier_destroy(&g->phase_two); 
+
 	free(g->v);
 	free(g->e);
 	free(g);
@@ -529,13 +726,14 @@ int main(int argc, char* argv[])
 	int		f;	/* output from preflow.		*/
 	int		n;	/* number of nodes.		*/
 	int		m;	/* number of edges.		*/
+	
 
 	progname = argv[0];	/* name is a string in argv[0]. */
 
 	in = stdin;		/* same as System.in in Java.	*/
 
-	n = next_int();
-	m = next_int();
+	n = next_int();  /* nr nodes */
+	m = next_int();  /* nr vertecies */
 
 	/* skip C and P from the 6railwayplanning lab in EDAF05 */
 	next_int();
@@ -545,7 +743,7 @@ int main(int argc, char* argv[])
 
 	fclose(in);
 
-	f = preflow(g);
+	f = parallell_preflow(g);
 
 	printf("f = %d\n", f);
 
