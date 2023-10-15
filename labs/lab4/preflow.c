@@ -469,26 +469,7 @@ static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
 		assert(d >= 0);
 		assert(u->e >= 0);
 		assert(abs(e->f) <= e->c);
-	}
-
-	if (u->e > 0) {
-			
-
-		/* still some remaining so let u push more. */
-
-		enter_excess(g, u);
-	}
-
-	if (v->e == d) {
-
-		/* since v has d excess now it had zero before and
-		 * can now push.
-		 *
-		 */
-
-		enter_excess(g, v);
-	}
-	
+	}	
 }
 
 
@@ -665,6 +646,14 @@ int parallell_preflow(graph_t *g) {
 
 				if (op->push) {
 					push_op(g, op->u, op->v, op->e, op->flow);
+
+					if (op->u->e > 0) {
+						enter_excess(g, op->u);
+					}
+
+					if (op->v->e == op->flow) {
+						enter_excess(g, op->v);
+					}
 				} else {
 					relabel(g, op->u);
 				}
