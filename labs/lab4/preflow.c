@@ -35,9 +35,10 @@
 #include <string.h>
 #include <pthread.h>
 #include "pthread_barrier.h"
+#include <stdatomic.h>
 
 #define PRINT		0	/* enable/disable prints. */
-#define NBR_THREADS 4
+#define NBR_THREADS 1
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -78,6 +79,7 @@ struct list_t {
 struct node_t {
 	int		h;	/* height.			*/
 	int		e;	/* excess flow.			*/
+	atomic_int coming_flow;
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 };
@@ -370,6 +372,7 @@ static void enter_excess(graph_t* g, node_t* v)
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
+		v->coming_flow = 0;
 	}
 }
 
@@ -450,8 +453,8 @@ static void relabel(graph_t* g, node_t* u)
 static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
 	int		d = flow;
 
-	u->e -= d;
-	v->e += d;
+	u->coming_flow -= d;
+	v->coming_flow += d;
 	
 	if (u == e->u) {
 		e->f += d;
@@ -548,6 +551,7 @@ static void *work(void *arg) {
 				}
 
 				op->flow = d;
+				push_op(g, u, v, e, d)
 				pr("push op created %d->%d with %d\n", id(g,u), id(g,v), d);
 			} else {
 
@@ -645,7 +649,9 @@ int parallell_preflow(graph_t *g) {
 				op_t* op = t->ops[c];
 
 				if (op->push) {
-					push_op(g, op->u, op->v, op->e, op->flow);
+					//push_op(g, op->u, op->v, op->e, op->flow);
+					op->u->e = op->u->coming_flow;
+					op->v->e = op->v->coming_flow;
 
 					if (op->u->e > 0) {
 						enter_excess(g, op->u);
