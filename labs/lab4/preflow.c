@@ -80,6 +80,7 @@ struct node_t {
 	int		h;	/* height.			*/
 	int		e;	/* excess flow.			*/
 	atomic_int coming_flow;
+	int relabel;
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 };
@@ -105,21 +106,10 @@ struct graph_t {
 };
 
 typedef struct {
-	node_t* u;
-	node_t* v;
-	edge_t* e;
-	int push; // 0 for relabel 1 for push
-	int flow;
-} op_t;
-
-typedef struct {
 	graph_t* g;
 	node_t** excess;
 	int c;
 	int i;
-	op_t** ops;
-	int opc;
-	int opi;
 } threadarg_t;
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -353,6 +343,9 @@ static graph_t* new_graph(FILE* in, int n, int m)
 		c = next_int();
 		u = &g->v[a];
 		v = &g->v[b];
+        u->coming_flow = 0;
+        v->coming_flow = 0;
+
 		connect(u, v, c, g->e+i);
 	}
 
@@ -369,10 +362,14 @@ static void enter_excess(graph_t* g, node_t* v)
 	 * it first is simplest.
 	 *
 	 */
+	
+	v->coming_flow = v->e;
+
 	if (v != g->t && v != g->s) {
+		pr("entering excess node %d\n", id(g, v));
+		assert(v->e > 0); 
 		v->next = g->excess;
 		g->excess = v;
-		v->coming_flow = 0;
 	}
 }
 
@@ -444,35 +441,10 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 static void relabel(graph_t* g, node_t* u)
 {
 	u->h += 1;
-
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
+	u->relabel = 0;
 
 	enter_excess(g, u);
-}
-
-static void push_op(graph_t* g, node_t* u, node_t* v, edge_t* e, int flow) {
-	int		d = flow;
-
-	u->coming_flow -= d;
-	v->coming_flow += d;
-	
-	if (u == e->u) {
-		e->f += d;
-	} else {
-		e->f -= d;
-	}
-
-	pr("push from %d to %d: ", id(g, u), id(g, v));
-	pr("f = %d, c = %d, so ", e->f, e->c);
-
-	pr("pushing %d\n", d);
-	/* the following are always true. */
-
-	if (u != g->s && v != g->s) {
-		assert(d >= 0);
-		assert(u->e >= 0);
-		assert(abs(e->f) <= e->c);
-	}	
 }
 
 
@@ -499,7 +471,6 @@ static void *work(void *arg) {
 
 
 	while (g->done != 1) {
-		pr("i = %d\n", args->i);
 		for (int j = 0; j < args->i; j++) {
 			u = args->excess[j];
 			pr("selected u = %d with ", id(g, u));
@@ -518,55 +489,49 @@ static void *work(void *arg) {
 					v = e->u;
 					b = -1;
 				}
-
+				
 				if (u->h > v->h && b * e->f < e->c) // check height and check flow doesnt exceed capacity
 					break;
 				else
 					v = NULL;
 			}
 
-			if (args->opi == args->opc) {
-				args->opc *= 2;
-				op_t** larger = realloc(args->ops, args->opc * sizeof args->ops[0]);
-				if (larger == NULL) {
-					error("no memory");
-				}
-				args->ops = larger;
-			}
-			
-			op_t* op = malloc(sizeof(op_t));
-			args->ops[args->opi] = op;
-			
 			if (v != NULL) {
-				// push op
-				op->push = 1;
-				op->u = u;
-				op->v = v;
-				op->e = e;
-
+				
 				if (u == e->u) {
 					d = MIN(u->e, e->c - e->f);
 				} else {
 					d = MIN(u->e, e->c + e->f);
 				}
 
-				op->flow = d;
-				push_op(g, u, v, e, d)
-				pr("push op created %d->%d with %d\n", id(g,u), id(g,v), d);
-			} else {
+				pr("node %d has e=%d coming_flow=%d\n", id(g, u), u->e, u->coming_flow);
+				pr("node %d has e=%d coming_flow=%d\n", id(g, v), v->e, v->coming_flow);
+                atomic_fetch_sub_explicit(&u->coming_flow, d, memory_order_seq_cst);
+				atomic_fetch_add_explicit(&v->coming_flow, d, memory_order_seq_cst);
+				pr("push %d from %d to %d\n",d, id(g, u), id(g, v));
+				pr("node %d has %d\n", id(g, v), v->e);
 
-				// relabel op
-				op->push = 0;
-				op->u = u;
-				pr("relabel op created for %d with h %d\n", id(g,u), u->h);
+				if (u != g->s && v != g->s) {
+					assert(d >= 0);
+					assert(u->e >= 0);
+					assert(abs(e->f) <= e->c);
+				}	
+
+				if (u == e->u) {
+					e->f += d;
+				} else {
+					e->f -= d;
+				}
+			} else {
+				u->relabel = 1;
 			}
-			args->opi += 1;
 		}
+		args->i = 0;
 		pthread_barrier_wait(&g->phase_one);
 		pthread_barrier_wait(&g->phase_two);
 	}
 
-	printf("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
+	pr("thread %ld terminating with %d nodes worked on\n", pthread_self(), nodes_worked_on);
 }
 
 int distribute_work(graph_t *g, threadarg_t* thread_args) {
@@ -574,10 +539,11 @@ int distribute_work(graph_t *g, threadarg_t* thread_args) {
 	int cycle = 0;
 	
 	while((u = leave_excess(g)) != NULL) {
+		
+		pr("leaving_excess: node %d has e=%d coming_flow=%d\n", id(g, u), u->e, u->coming_flow);
 		threadarg_t* t = &thread_args[cycle];
 		int c = t->c;
 		int i = t->i;
-		pr("cycle = %d\n", cycle);
 		if (i == c) {
 			t->c *= 2;
 			node_t** larger = realloc(t->excess, t->c * sizeof(node_t*));
@@ -627,9 +593,6 @@ int parallell_preflow(graph_t *g) {
 
 		t->i = 0;
 		t->g = g;
-		t->opc = 16; 
-		t->opi = 0;
-		t->ops = malloc(t->opc * sizeof t->ops[0]);
 	}
 
 	distribute_work(g, thread_args);
@@ -642,35 +605,32 @@ int parallell_preflow(graph_t *g) {
 	pthread_barrier_wait(&g->phase_one);
 
 	while(1) {
-		for (int j = 0; j < NBR_THREADS; j++) {
-			threadarg_t *t = &thread_args[j];
-			int opi = t->opi; 
-			for (int c = 0; c < opi; c++) {
-				op_t* op = t->ops[c];
+		for (int j = 0; j < g->n; j++) {
+			node_t* node = &g->v[j];
+			pr("main: selected node %d\n", id(g,node));
+			atomic_int coming_flow = node->coming_flow;
+			int excess = node->e;
 
-				if (op->push) {
-					//push_op(g, op->u, op->v, op->e, op->flow);
-					op->u->e = op->u->coming_flow;
-					op->v->e = op->v->coming_flow;
-
-					if (op->u->e > 0) {
-						enter_excess(g, op->u);
-					}
-
-					if (op->v->e == op->flow) {
-						enter_excess(g, op->v);
-					}
-				} else {
-					relabel(g, op->u);
+			pr("%d\n",node->coming_flow);
+			pr("%d\n",node->e);
+			if (coming_flow != excess) {
+				node->e = coming_flow;
+			
+				if (g->v[j].e > 0) {
+					pr("here %d\n", id(g, node));
+					enter_excess(g, node);
 				}
+
+			} else if (node->relabel) {
+				if (j != 0 && j != g->n - 1)
+					relabel(g, node);
 			}
-			t->opi = 0;
-			t->i = 0;
 		}
 		
 		if (g->excess == NULL) {
 			break;
 		}
+
 		distribute_work(g, thread_args);
 
 		pr("distributing again\n");
