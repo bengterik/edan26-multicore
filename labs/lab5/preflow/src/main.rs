@@ -3,8 +3,10 @@
 use std::sync::{Mutex,Arc};
 use std::collections::LinkedList;
 use std::cmp;
-use std::thread;
+//use std::thread;
 use std::collections::VecDeque;
+
+const DEBUG: bool = true;
 
 struct Node {
 	i:	usize,			/* index of itself for debugging.	*/
@@ -27,11 +29,29 @@ impl Node {
 }
 
 impl Edge {
-        fn new(uu:usize, vv:usize,cc:i32) -> Edge {
-                Edge { u: uu, v: vv, f: 0, c: cc }      
-        }
+	fn new(uu:usize, vv:usize,cc:i32) -> Edge {
+			Edge { u: uu, v: vv, f: 0, c: cc }      
+	}
 }
 
+fn enter_excess(excess: &mut VecDeque<usize>, node: usize, t: usize) {
+	if node != 0 && node != t {
+		excess.push_back(node);
+	}
+
+	if DEBUG {
+		println!("enter excess {}", node);
+	}
+}
+
+fn relabel(excess: &mut VecDeque<usize>, node: &mut Node, t: usize) {
+	node.h += 1;
+	enter_excess(excess, node.i, t);
+
+	if DEBUG {
+		println!("relabeling {} with h = {}", node.i, node.h);
+	}
+}
 
 fn main() {
 
@@ -43,7 +63,7 @@ fn main() {
 	let mut edge = vec![];
 	let mut adj: Vec<LinkedList<usize>> =Vec::with_capacity(n);
 	let mut excess: VecDeque<usize> = VecDeque::new();
-	let debug = false;
+	let _debug = DEBUG;
 
 	let s = 0;
 	let t = n-1;
@@ -61,34 +81,111 @@ fn main() {
 		let u: usize = read!();
 		let v: usize = read!();
 		let c: i32 = read!();
-		let e:Edge = Edge::new(u,v,c);
+		let e: Edge = Edge::new(u,v,c);
 		adj[u].push_back(i);
 		adj[v].push_back(i);
 		edge.push(Arc::new(Mutex::new(e))); 
 	}
 
-	if debug {
-		for i in 0..n {
-			print!("adj[{}] = ", i);
-			let iter = adj[i].iter();
 
-			for e in iter {
-				print!("e = {}, ", e);
+	println!("pushing from sink");
+	let iter = adj[s].iter();
+
+	for e in iter {
+		let s = &mut node[s].lock().unwrap();
+		let edge = &mut &edge[*e].lock().unwrap();
+		let other;
+
+		if s.i == edge.u {
+			other = edge.v;
+		} else {
+			other = edge.u;
+		}
+
+		let o = &mut node[other].lock().unwrap();
+		o.e += edge.c;
+		s.h = (t as i32) + 1;
+		
+		excess.push_back(other);
+	}
+
+	println!("working on excess");
+	// loop until done
+	while !excess.is_empty() {
+		let u = excess.pop_front().unwrap();
+		let mut o: Option<usize> = None;
+
+		println!("selected {} from excess", u);
+		let iter = adj[u].iter();
+
+		for e in iter {
+			let edge = &mut edge[*e].lock().unwrap();
+			let n = &mut node[u].lock().unwrap();
+			let other;
+			let b;
+
+			if n.i == edge.u {
+				other = edge.v;
+				b = 1;
+			} else {
+				other = edge.u;
+				b = -1;
 			}
-			println!("");
+			
+			o = Some(other);
+			
+			let other_node = &mut node[other].lock().unwrap();
+			println!("edge {}->{} with f = {}, c = {}", edge.u, edge.v, edge.f, edge.c);
+			if n.h > other_node.h && b * edge.f < edge.c {
+				push(edge, n, other_node, &mut excess, t);
+
+				break;
+			} else {
+				o = None;
+			}
+		}
+
+		if o.is_none() {
+			relabel(&mut excess,&mut node[u].lock().unwrap(), t);
 		}
 	}
 
-	println!("initial pushes");
-	let iter = adj[s].iter();
+	println!("f = {}", node[t].lock().unwrap().e);
 
-	// but nothing is done here yet...
+}
 
-	while !excess.is_empty() {
-		let mut c = 0;
-		let u = excess.pop_front().unwrap();
+fn push(edge: &mut Edge, n: &mut Node, o: &mut Node, excess: &mut VecDeque<usize>, t: usize) {
+    let d;
+	let b;
+
+    if n.i == edge.u {
+		d = cmp::min(n.e, edge.c - edge.f);
+		b = 1;
+	} else {
+		d = cmp::min(n.e, edge.c + edge.f);
+		b = -1;
+	}
+	
+	if DEBUG {
+		println!("pushing {} from {} to {}", d, n.i, o.i);
 	}
 
-	println!("f = {}", 0);
+    edge.f += d*b;
 
+    n.e -= d;
+    o.e += d;
+
+	if n.i != 0 && o.i != 0 {
+		assert!(d > 0);
+		assert!(n.e >= 0);
+		assert!(edge.f.abs() <= edge.c);
+	}
+
+    if n.e > 0 {
+		enter_excess(excess, n.i, t);
+	}
+
+    if o.e == d {
+		enter_excess(excess, o.i, t);
+	}
 }
