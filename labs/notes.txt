@@ -1,3 +1,38 @@
+Labb 5: Rust
+Ownership: a single variable is always the owner of some memory
+Moving: the ownership can be moved to new variables, invalidating the older reference
+Borrowing: the memory can be borrowed to functions and other values with the use of the &-operator.
+ARC: The arc is a type of atomic wrapper for any object or data. A thread can clone() an ARC which allows the thread to modify the ARC while also "listening" for changes to it.
+
+Labb 4
+Med vanlig int ~8 sekunder medans med atomic ~14 sekunder.
+
+1. Instruktionerna 
+* isync: "The isync and ics instructions cause the processor to refetch any instructions that might have been fetched prior to the isync or ics instruction."
+* hwsync: ensures sequential consistency on power 
+
+2. 
+Move -=/+= to first phase
+
+3. 
+Sequential consistency, although the compound operators are not atomic.
+
+4. 
+With sequential consistency all memory operations before the load/store operation has to be visible to the other threads before it can move on. With a relaxed memory model this is not a requirement and the values of the variables does not have to be consistent over the threads.
+
+The change of the two atomic variables are not dependent on other shared variables, making reordering of those operations not important to the correctness of the algorithm. 
+
+5.
+Running it with the relaxed memory model seems a tiny bit faster. This could be due that the two atomic operations
+
+    atomic_fetch_sub_explicit(&u->coming_flow, d, memory_order_relaxed);
+    atomic_fetch_add_explicit(&v->coming_flow, d, memory_order_relaxed);
+
+does not have to wait for the other operation to be updated in the memory of the other threads.
+
+7. 
+First I started out using operations as in lab three but then went for iterating over all the nodes. This frees the many allocations that had to be done for the operations.
+
 Lab 3
 Frågor:
 - realloc, segmentation fault

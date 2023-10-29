@@ -1,0 +1,11 @@
+/home/alexander/git/edan26-multicore/labs/lab5/swish/target/debug/deps/getrandom-5b6fdabd1e784f50.rmeta: /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/lib.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error_impls.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util_libc.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/use_file.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/linux_android.rs
+
+/home/alexander/git/edan26-multicore/labs/lab5/swish/target/debug/deps/getrandom-5b6fdabd1e784f50.d: /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/lib.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error_impls.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util_libc.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/use_file.rs /home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/linux_android.rs
+
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/lib.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/error_impls.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/util_libc.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/use_file.rs:
+/home/alexander/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.10/src/linux_android.rs:

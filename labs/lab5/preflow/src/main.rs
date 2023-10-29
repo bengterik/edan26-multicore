@@ -6,7 +6,7 @@ use std::cmp;
 //use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 struct Node {
 	i:	usize,			/* index of itself for debugging.	*/
@@ -115,7 +115,9 @@ fn main() {
 		let u = excess.pop_front().unwrap();
 		let mut o: Option<usize> = None;
 
-		println!("selected {} from excess", u);
+		if DEBUG {
+			println!("selected {} from excess", u);
+		}
 		let iter = adj[u].iter();
 
 		for e in iter {
@@ -135,7 +137,11 @@ fn main() {
 			o = Some(other);
 			
 			let other_node = &mut node[other].lock().unwrap();
-			println!("edge {}->{} with f = {}, c = {}", edge.u, edge.v, edge.f, edge.c);
+			
+			if DEBUG {
+				println!("edge {}->{} with f = {}, c = {}", edge.u, edge.v, edge.f, edge.c);
+			}
+			
 			if n.h > other_node.h && b * edge.f < edge.c {
 				push(edge, n, other_node, &mut excess, t);
 
@@ -151,6 +157,7 @@ fn main() {
 	}
 
 	println!("f = {}", node[t].lock().unwrap().e);
+
 
 }
 

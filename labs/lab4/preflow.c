@@ -506,8 +506,8 @@ static void *work(void *arg) {
 
 				pr("node %d has e=%d coming_flow=%d\n", id(g, u), u->e, u->coming_flow);
 				pr("node %d has e=%d coming_flow=%d\n", id(g, v), v->e, v->coming_flow);
-                atomic_fetch_sub_explicit(&u->coming_flow, d, memory_order_relaxed);
-				atomic_fetch_add_explicit(&v->coming_flow, d, memory_order_relaxed);
+                atomic_fetch_sub_explicit(&u->coming_flow, d, memory_order_seq_cst);
+				atomic_fetch_add_explicit(&v->coming_flow, d, memory_order_seq_cst);
 				pr("push %d from %d to %d\n",d, id(g, u), id(g, v));
 				pr("node %d has %d\n", id(g, v), v->e);
 
