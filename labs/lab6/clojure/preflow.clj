@@ -1,6 +1,6 @@
 erequire '[clojure.string :as str])		; for splitting an input line into words
 
-(def debug false)
+(def debug true)
 
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
