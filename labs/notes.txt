@@ -1,3 +1,6 @@
+labb 6: HW Transactional memory
+Med atomic+barrier-lösningen var det endast att ändra de atomära instruktionerna till transaktioner. En transaktion blir atomär då den när den är klar försäkrar sig att ingen annan transaktion gjorts klart under tiden. Om en annan transaktion blivit klar under tiden den körts görs instruktionerna i transaktionsblocket om tills de är först med att bli klara.l 
+
 Labb 5: Rust
 Ownership: a single variable is always the owner of some memory
 Moving: the ownership can be moved to new variables, invalidating the older reference
