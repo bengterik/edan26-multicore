@@ -1,4 +1,4 @@
-erequire '[clojure.string :as str])		; for splitting an input line into words
+(require '[clojure.string :as str])		; for splitting an input line into words
 
 (def debug true)
 
@@ -50,11 +50,13 @@ erequire '[clojure.string :as str])		; for splitting an input line into words
 	(ref-set (edges i) (update @(edges i) :f - d)))
 
 (defn move-excess [nodes u v d]
+	(println "excess moved")
 	(ref-set (nodes u) (update @(nodes u) :e - d))
 	(ref-set (nodes v) (update @(nodes v) :e + d)))
 
 (defn insert [excess-nodes v]
-	(ref-set excess-nodes (cons v @excess-nodes)))
+	(ref-set excess-nodes (cons v @excess-nodes))
+)
 
 (defn check-insert [excess-nodes v s t]
 	(if (and (not= v s) (not= v t))
@@ -79,8 +81,28 @@ erequire '[clojure.string :as str])		; for splitting an input line into words
 			(println "f = " f)
 			(println "c = " c)
 			(println "v = " v)
-			(println "vh = " vh)))))))))))
+			(println "vh = " vh)))
+	
+	(if (u-is-edge-u @(edges i) u)
+		(do 
+			(def d (min e (- c f)))
+			(increase-flow edges i d))
+		(do 
+			(def d (min e (+ c f)))
+			(decrease-flow edges i d)
+			))
 
+	(move-excess nodes u v d)
+
+	(if (> e 0) (check-insert excess-nodes u s t))
+	
+	(if (= (node-excess @(nodes u)) d) (check-insert excess-nodes v s t))))))))))
+
+(defn relabel [u nodes excess-nodes s t]
+	(let [h	(node-height @(nodes u))]
+	(println "relabel " (:i @u) h)
+	(update @(nodes u) :h + 1)
+	(check-insert excess-nodes (nodes u) s t)))
 
 ; go through adjacency-list of source and push
 (defn initial-push [adj s t nodes edges excess-nodes]
@@ -95,14 +117,13 @@ erequire '[clojure.string :as str])		; for splitting an input line into words
 	(initial-push (node-adj @(nodes s)) s t nodes edges excess-nodes))
 
 (defn remove-any [excess-nodes]
-	(dosync 
-		(let [ u (ref -1)]
-			(do
-				(if (not (empty? @excess-nodes))
-					(do
-						(ref-set u (first @excess-nodes))
-						(ref-set excess-nodes (rest @excess-nodes))))
-			@u))))
+	(let [ u (ref -1)]
+		(do
+			(if (not (empty? @excess-nodes))
+				(do
+					(ref-set u (first @excess-nodes))
+					(ref-set excess-nodes (rest @excess-nodes))))
+		@u)))
 
 ; read first line with n m c p from stdin
 
@@ -124,10 +145,43 @@ erequire '[clojure.string :as str])		; for splitting an input line into words
 
 (dosync (read-graph 0 m nodes edges))
 
+(defn work [nodes edges excess-nodes adj change u s t]	
+	(let [e (first adj)]
+	(if (not= e nil) 
+		(do	
+			(println "e="e)
+			(if (u-is-edge-u e u)
+				(do 
+					(def v (:v @(edges e)))
+					(def b 1))
+
+				(do 
+					(def v (:u @(edges e)))
+					(def b -1)))
+			
+			(println "v="v)
+
+			(let [uh	(node-height @(nodes u))]
+			(let [vh	(node-height @(nodes v))]
+			(if (and (> uh vh) (< (* b (edge-flow e)) (edge-capacity e)))
+				(do
+					(push (:i e) u nodes edges excess-nodes change s t)
+					(ref-set change (+ change 1)))
+				(do 	
+					(work nodes edges excess-nodes (rest adj) change n s t)
+				))))))))
+
 (defn preflow []
 
 	(dosync (initial-pushes nodes edges s t excess-nodes))
-
+	(dosync 
+		(while (not-empty @excess-nodes)
+			(do
+				(def n (remove-any excess-nodes))
+				(let [change (ref 0)]
+				(work nodes edges @excess-nodes (:adj @(nodes n)) change n s t)
+				(if (> @change 0) (relabel n nodes @excess-nodes s t))))))
+	
 	(println "f =" (node-excess @(nodes t))))
 
 (preflow)
