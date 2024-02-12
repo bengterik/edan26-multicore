@@ -95,15 +95,16 @@
 	(move-excess nodes u v d)
 
 	(if (> e 0) (check-insert excess-nodes u s t))
-	
 	(if (= (node-excess @(nodes u)) d) (check-insert excess-nodes v s t))))))))))
 
 (defn relabel [u nodes excess-nodes s t]
-	(let [h	(node-height @(nodes u))]
-	(println "relabel " (:i @u) h)
-	(update @(nodes u) :h + 1)
-	(check-insert excess-nodes (nodes u) s t)))
 
+	(let [h	(node-height @(nodes u))]
+
+	(println "relabel " u h)
+	(update @(nodes u) :h + 1)
+	(check-insert excess-nodes u s t)))
+	
 ; go through adjacency-list of source and push
 (defn initial-push [adj s t nodes edges excess-nodes]
 	(let [change (ref 0)] ; unused for initial pushes since we know they will be performed
@@ -168,6 +169,7 @@
 					(push (:i e) u nodes edges excess-nodes change s t)
 					(ref-set change (+ change 1)))
 				(do 	
+					(println "taking next")
 					(work nodes edges excess-nodes (rest adj) change n s t)
 				))))))))
 
@@ -180,7 +182,7 @@
 				(def n (remove-any excess-nodes))
 				(let [change (ref 0)]
 				(work nodes edges @excess-nodes (:adj @(nodes n)) change n s t)
-				(if (> @change 0) (relabel n nodes @excess-nodes s t))))))
+				(if (= @change 0) (relabel n nodes excess-nodes s t))))))
 	
 	(println "f =" (node-excess @(nodes t))))
 
