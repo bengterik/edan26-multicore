@@ -1,6 +1,6 @@
 (require '[clojure.string :as str])		; for splitting an input line into words
 
-(def debug true)
+(def debug false)
 
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
@@ -50,7 +50,6 @@
 	(ref-set (edges i) (update @(edges i) :f - d)))
 
 (defn move-excess [nodes u v d]
-	(println "excess moved")
 	(ref-set (nodes u) (update @(nodes u) :e - d))
 	(ref-set (nodes v) (update @(nodes v) :e + d)))
 
@@ -75,12 +74,12 @@
 		(do
 			(println "--------- push -------------------")
 			(println "i = " i)
-			(println "u = " u)
+			(println "u = " @(nodes u))
 			(println "uh = " uh)
 			(println "e = " e)
 			(println "f = " f)
 			(println "c = " c)
-			(println "v = " v)
+			(println "v = " @(nodes v))
 			(println "vh = " vh)))
 	
 	(if (u-is-edge-u @(edges i) u)
@@ -93,24 +92,25 @@
 			))
 
 	(move-excess nodes u v d)
-
 	(if (> e 0) (check-insert excess-nodes u s t))
-	(if (= (node-excess @(nodes u)) d) (check-insert excess-nodes v s t))))))))))
+	(if (= (node-excess @(nodes v)) d) (check-insert excess-nodes v s t))))))))))
 
 (defn relabel [u nodes excess-nodes s t]
 
 	(let [h	(node-height @(nodes u))]
 
-	(println "relabel " u h)
-	(update @(nodes u) :h + 1)
+	(ref-set (nodes u) (update @(nodes u) :h + 1))
 	(check-insert excess-nodes u s t)))
-	
+
 ; go through adjacency-list of source and push
 (defn initial-push [adj s t nodes edges excess-nodes]
 	(let [change (ref 0)] ; unused for initial pushes since we know they will be performed
 	(if (not (empty? adj))
 		(do 
 			; give source this capacity as excess so the push will be accepted
+			(ref-set (nodes s) 
+				(update @(nodes s) :e + 
+					(edge-capacity @(edges (first adj)))))
 			(push (first adj) s nodes edges excess-nodes change s t)
 			(initial-push (rest adj) s t nodes edges excess-nodes)))))
 
@@ -150,8 +150,7 @@
 	(let [e (first adj)]
 	(if (not= e nil) 
 		(do	
-			(println "e="e)
-			(if (u-is-edge-u e u)
+			(if (u-is-edge-u @(edges e) u)
 				(do 
 					(def v (:v @(edges e)))
 					(def b 1))
@@ -160,28 +159,25 @@
 					(def v (:u @(edges e)))
 					(def b -1)))
 			
-			(println "v="v)
 
 			(let [uh	(node-height @(nodes u))]
 			(let [vh	(node-height @(nodes v))]
-			(if (and (> uh vh) (< (* b (edge-flow e)) (edge-capacity e)))
+			(if (and (> uh vh) (< (* b (edge-flow @(edges e))) (edge-capacity @(edges e))))
 				(do
-					(push (:i e) u nodes edges excess-nodes change s t)
-					(ref-set change (+ change 1)))
+					(push e u nodes edges excess-nodes change s t)
+					(ref-set change (+ @change 1)))
 				(do 	
-					(println "taking next")
 					(work nodes edges excess-nodes (rest adj) change n s t)
 				))))))))
 
 (defn preflow []
-
 	(dosync (initial-pushes nodes edges s t excess-nodes))
 	(dosync 
 		(while (not-empty @excess-nodes)
 			(do
 				(def n (remove-any excess-nodes))
 				(let [change (ref 0)]
-				(work nodes edges @excess-nodes (:adj @(nodes n)) change n s t)
+				(work nodes edges excess-nodes (:adj @(nodes n)) change n s t)
 				(if (= @change 0) (relabel n nodes excess-nodes s t))))))
 	
 	(println "f =" (node-excess @(nodes t))))
