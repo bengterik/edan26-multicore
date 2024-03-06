@@ -2,6 +2,8 @@
 
 (def debug false)
 
+(def num-threads 2)
+
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
 (defrecord node [i e h adj])			; index excess-preflow height adjacency-list
@@ -96,17 +98,17 @@
 	(if (= (node-excess @(nodes v)) d) (check-insert excess-nodes v s t))))))))))
 
 (defn relabel [u nodes excess-nodes s t]
+	(dosync
+		(let [h	(node-height @(nodes u))]
 
-	(let [h	(node-height @(nodes u))]
-
-	(ref-set (nodes u) (update @(nodes u) :h + 1))
-	(check-insert excess-nodes u s t)))
+		(ref-set (nodes u) (update @(nodes u) :h + 1))
+		(check-insert excess-nodes u s t))))
 
 ; go through adjacency-list of source and push
 (defn initial-push [adj s t nodes edges excess-nodes]
 	(let [change (ref 0)] ; unused for initial pushes since we know they will be performed
 	(if (not (empty? adj))
-		(do 
+		(dosync
 			; give source this capacity as excess so the push will be accepted
 			(ref-set (nodes s) 
 				(update @(nodes s) :e + 
@@ -119,7 +121,7 @@
 
 (defn remove-any [excess-nodes]
 	(let [ u (ref -1)]
-		(do
+		(dosync 
 			(if (not (empty? @excess-nodes))
 				(do
 					(ref-set u (first @excess-nodes))
@@ -164,22 +166,29 @@
 			(let [vh	(node-height @(nodes v))]
 			(if (and (> uh vh) (< (* b (edge-flow @(edges e))) (edge-capacity @(edges e))))
 				(do
+					(dosync
 					(push e u nodes edges excess-nodes change s t)
-					(ref-set change (+ @change 1)))
+					(ref-set change (+ @change 1))))
 				(do 	
 					(work nodes edges excess-nodes (rest adj) change n s t)
 				))))))))
 
 (defn preflow []
 	(dosync (initial-pushes nodes edges s t excess-nodes))
-	(dosync 
+	(do 
 		(while (not-empty @excess-nodes)
 			(do
 				(def n (remove-any excess-nodes))
 				(let [change (ref 0)]
 				(work nodes edges excess-nodes (:adj @(nodes n)) change n s t)
-				(if (= @change 0) (relabel n nodes excess-nodes s t))))))
+				(dosync
+				(if (= @change 0) (relabel n nodes excess-nodes s t)))))))
 	
 	(println "f =" (node-excess @(nodes t))))
 
+(defn main []
+	(let [threads (repeatedly num-threads #(Thread. preflow))]
+			(run! #(.start %) threads)
+			(run! #(.join %) threads))
+)
 (preflow)
