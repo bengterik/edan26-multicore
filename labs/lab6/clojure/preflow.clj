@@ -2,8 +2,6 @@
 
 (def debug false)
 
-(def num-threads 2)
-
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
 (defrecord node [i e h adj])			; index excess-preflow height adjacency-list
@@ -120,8 +118,8 @@
 	(initial-push (node-adj @(nodes s)) s t nodes edges excess-nodes))
 
 (defn remove-any [excess-nodes]
-	(let [ u (ref -1)]
-		(dosync 
+	(dosync 
+		(let [ u (ref -1)]
 			(if (not (empty? @excess-nodes))
 				(do
 					(ref-set u (first @excess-nodes))
@@ -174,21 +172,24 @@
 				))))))))
 
 (defn preflow []
-	(dosync (initial-pushes nodes edges s t excess-nodes))
-	(do 
 		(while (not-empty @excess-nodes)
-			(do
+			(dosync 
 				(def n (remove-any excess-nodes))
 				(let [change (ref 0)]
-				(work nodes edges excess-nodes (:adj @(nodes n)) change n s t)
-				(dosync
-				(if (= @change 0) (relabel n nodes excess-nodes s t)))))))
-	
-	(println "f =" (node-excess @(nodes t))))
+				(if (not= n -1)
+					(do
+					(work nodes edges excess-nodes (node-adj @(nodes n)) change n s t)
+					(if (= @change 0) (relabel n nodes excess-nodes s t))))))))
 
-(defn main []
+(def num-threads 4)
+
+(defn start []
+	(dosync (initial-pushes nodes edges s t excess-nodes))
+	
 	(let [threads (repeatedly num-threads #(Thread. preflow))]
 			(run! #(.start %) threads)
 			(run! #(.join %) threads))
-)
-(preflow)
+
+	(println "f =" (node-excess @(nodes t))))
+
+(start)
