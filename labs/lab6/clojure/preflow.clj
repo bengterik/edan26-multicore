@@ -159,22 +159,21 @@
 					(def v (:u @(edges e)))
 					(def b -1)))
 			
-
+			
 			(let [uh	(node-height @(nodes u))]
 			(let [vh	(node-height @(nodes v))]
 			(if (and (> uh vh) (< (* b (edge-flow @(edges e))) (edge-capacity @(edges e))))
 				(do
-					(dosync
 					(push e u nodes edges excess-nodes change s t)
-					(ref-set change (+ @change 1))))
+					(ref-set change (+ @change 1)))
 				(do 	
 					(work nodes edges excess-nodes (rest adj) change n s t)
 				))))))))
 
 (defn preflow []
 		(while (not-empty @excess-nodes)
-			(dosync 
-				(def n (remove-any excess-nodes))
+			(def n (remove-any excess-nodes))
+			(do
 				(let [change (ref 0)]
 				(if (not= n -1)
 					(do

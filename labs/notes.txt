@@ -1,6 +1,23 @@
 labb 6: HW Transactional memory
 Med atomic+barrier-lösningen var det endast att ändra de atomära instruktionerna till transaktioner. En transaktion blir atomär då den när den är klar försäkrar sig att ingen annan transaktion gjorts klart under tiden. Om en annan transaktion blivit klar under tiden den körts görs instruktionerna i transaktionsblocket om tills de är först med att bli klara.l 
 
+Transaktioner passar i clj för att det är funktionellt. 
+I/O är icke-deterministiskt (och tar mkt tid).
+
+N = 1024
+1. No OpenMP: 24.29s
+2. gcc -fopenmp mm1.c tbr.s timebase.c: 12.86s
+3. clang -mcpu=power8 -O3 mm.c tbr.s timebase.c: 11.30s
+4. gcc -ftree-parallelize-loops=80 -fexpensive-optimizations -mcpu=power8 -O3 mm1.c tbr.s timebase.c: 3.0s
+5. pgcc -tp=pwr8 -O4 mm.c -Mconcur=allcores: 0.17s
+6. xlc -qarch=pwr8 -O5 -qsmp -qhot=level=2 mm.c: 0.35
+
+Reording the loops will give fewer cache-misses in the c-matrix. Although not so much change...
+
+Frågor:
+- Hur bör jag gå tillväga med dosyncs i clj?
+- Hur mäter jag tiden för mm.c?
+
 Labb 5: Rust
 Ownership: a single variable is always the owner of some memory
 Moving: the ownership can be moved to new variables, invalidating the older reference
