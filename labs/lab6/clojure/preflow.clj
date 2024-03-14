@@ -172,8 +172,8 @@
 
 (defn preflow []
 		(while (not-empty @excess-nodes)
+			(dosync
 			(def n (remove-any excess-nodes))
-			(do
 				(let [change (ref 0)]
 				(if (not= n -1)
 					(do
